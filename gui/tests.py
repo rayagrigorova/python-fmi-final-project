@@ -9,7 +9,8 @@ from django.contrib.auth import get_user_model
 # The following tests are related to the register_and_login url
 class UserRegistrationAndLoginTests(TestCase):
     def test_register_and_login_ordinary_user(self):
-        register_response = self.client.post(reverse('register_and_login'), {
+        url = reverse('register_and_login')
+        register_response = self.client.post(url, {
             'username': 'ordinaryuser',
             'password': 'testpassword123',
             'role': 'ordinary',
@@ -17,7 +18,7 @@ class UserRegistrationAndLoginTests(TestCase):
         }, follow=True)
 
         if not register_response.context['user'].is_authenticated:
-            print(register_response.content)
+            print("ERROR: ", register_response.content)
 
         # Check for registration form errors
         if register_response.context.get('reg_form'):
