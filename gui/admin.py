@@ -1,21 +1,13 @@
 from django.contrib import admin
-from .models import ShoppingItem, ShoppingList
+from .models import CustomUser
 
 
-class ShoppingItemAdmin(admin.ModelAdmin):
-    model = ShoppingItem
-    ordering = ('name', 'quantity')
-    search_fields = ('name',)
-    list_display = ('name', 'quantity', 'bought')
-    fields = ('name', 'quantity', 'bought')
-
-class ShoppingListAdmin(admin.ModelAdmin):
-    model = ShoppingList
-    ordering = ('name', 'owner')
-    search_fields = ('name',)
-    list_display = ('name', 'owner')
-    fields = ('name', 'owner')
+class CustomUserAdmin(admin.ModelAdmin):
+    model = CustomUser
+    ordering = ('role',)
+    search_fields = ('role', 'username', 'email')  # Include additional search fields if needed
+    list_display = ('username', 'email', 'role', 'registration_code')  # Add fields to be displayed in the list view
+    fields = ('username', 'email', 'role', 'registration_code')  # Include fields to be displayed in the detail view
 
 
-admin.site.register(ShoppingItem, ShoppingItemAdmin)
-admin.site.register(ShoppingList, ShoppingListAdmin)
+admin.site.register(CustomUser, CustomUserAdmin)
