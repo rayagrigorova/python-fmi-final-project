@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from django import forms
 from django.shortcuts import render, redirect
+from django.urls import reverse
+
 from .models import RegistrationCode
 
 
@@ -36,7 +38,7 @@ def register(request):
             user = form.save(commit=False)
             user.set_password(form.cleaned_data['password'])
             user.save()
-            return redirect('login')
+            return redirect(reverse('login'))
     else:
         form = UserRegistrationForm()
     return render(request, 'registration/register.html', {'form': form})

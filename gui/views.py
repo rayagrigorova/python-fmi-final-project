@@ -1,6 +1,8 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
+from django.urls import reverse
+
 from .forms import UserRegistrationForm
 from django.shortcuts import render, redirect
 from .models import RegistrationCode
@@ -37,13 +39,13 @@ def register_and_login(request):
                 code_entry.is_activated = True
                 code_entry.save()
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-                return redirect('/login/')
+                return redirect(reverse('login'))
         elif 'action' in request.POST and request.POST['action'] == 'login':
             if login_form.is_valid():
                 user = authenticate(username=login_form.cleaned_data['username'],
                                     password=login_form.cleaned_data['password'])
                 if user is not None:
                     login(request, user)
-                    return redirect('/index/')
+                    return redirect(reverse('login'))
 
     return render(request, 'registration/register_and_login.html', {'reg_form': reg_form, 'login_form': login_form})
