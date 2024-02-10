@@ -7,16 +7,17 @@
     </form>
     <div class="header">Welcome!</div>
 
-
-{% for dog in dogs %}
-<div>
-    <h2>{{ dog.name }}</h2>
-    <p>Age: {{ dog.age }}</p>
-    <p>Breed: {{ dog.breed }}</p>
-    <p>Image: {{ dog.image }}</p>
-    <p>Shelter: {{ dog.shelter.name }}</p>
-    <a href="{% url 'dog_details' pk=dog.pk %}">View Details</a>
+<div class="dog-container">
+    {% for dog in dogs %}
+    <div class="dog-item">
+        <h2>{{ dog.name }}</h2>
+        <p>Age: {{ dog.age }}</p>
+        <p>Breed: {{ dog.breed }}</p>
+        <img src="{{ dog.image.url }}" style="width: 200px; height: 200px;">
+        <p>Shelter: {{ dog.shelter.name }}</p>
+        <a href="{% url 'dog_details' pk=dog.pk %}">View Details</a>
+    </div>
+    {% endfor %}
 </div>
-{% endfor %}
 {% endblock %}
 

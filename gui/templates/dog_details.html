@@ -2,15 +2,20 @@
 
 {% block content %}
 <div class="dog-details">
-    <h1>{{ dog.name }}</h1>
-    <p><strong>Age:</strong> {{ dog.age }}</p>
-    <p><strong>Gender:</strong> {{ dog.get_gender_display }}</p>
-    <p><strong>Breed:</strong> {{ dog.breed }}</p>
-    <p><strong>Description:</strong> {{ dog.description }}</p>
-    <p><strong>Shelter:</strong> {{ dog.shelter.name }}</p>
-    {% if dog.image %}
-        <img src="{{ dog.image.url }}" alt="Image of {{ dog.name }}">
-    {% endif %}
-   <a href="{% url 'shelter_details' dog.shelter.pk %}">Visit Shelter Page</a>#}
+    <div class="dog-image">
+        {% if dog.image %}
+        <img src="{{ dog.image.url }}" style="width: 200px; height: 200px;">
+        {% endif %}
+    </div>
+    <div class="dog-info">
+        <h1>{{ dog.name }}</h1>
+        <p><strong>Age:</strong> {{ dog.age }}</p>
+        <p><strong>Gender:</strong> {{ dog.get_gender_display }}</p>
+        <p><strong>Breed:</strong> {{ dog.breed }}</p>
+        <p><strong>Description:</strong> {{ dog.description }}</p>
+        <p><strong>Shelter:</strong> {{ dog.shelter.name }}</p>
+        <a href="{% url 'shelter_details' dog.shelter.pk %}">Visit Shelter Page</a>
+    </div>
 </div>
 {% endblock %}
+
