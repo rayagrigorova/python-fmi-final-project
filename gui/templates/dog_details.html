@@ -11,6 +11,6 @@
     {% if dog.image %}
         <img src="{{ dog.image.url }}" alt="Image of {{ dog.name }}">
     {% endif %}
-    <a href="{% url 'shelter_details' dog.shelter.pk %}">Visit Shelter Page</a>
+   <a href="{% url 'shelter_details' dog.shelter.pk %}">Visit Shelter Page</a>#}
 </div>
 {% endblock %}

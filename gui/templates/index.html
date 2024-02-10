@@ -13,7 +13,7 @@
     <h2>{{ dog.name }}</h2>
     <p>Age: {{ dog.age }}</p>
     <p>Breed: {{ dog.breed }}</p>
-{#    <p>Image: {{ dog.image }}</p>#}
+    <p>Image: {{ dog.image }}</p>
     <p>Shelter: {{ dog.shelter.name }}</p>
     <a href="{% url 'dog_details' pk=dog.pk %}">View Details</a>
 </div>

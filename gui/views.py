@@ -58,6 +58,8 @@ def register_and_login(request):
 class DogDetailView(DetailView):
     model = DogAdoptionPost
     template_name = 'dog_details.html'
+    context_object_name = 'dog'
+
 
 class ShelterDetailView(DetailView):
     model = Shelter
