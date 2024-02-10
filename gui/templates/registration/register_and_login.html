@@ -3,7 +3,7 @@
 {% block content %}
 <div class="registration">
   <h2>Register</h2>
-  <form method="post" id="regForm">
+  <form method="post" id="regForm" autocomplete="off" action="{% url 'register' %}">
     {% csrf_token %}
     {{ reg_form.as_p }}
     <button type="submit" name="action" value="register">Register</button>
@@ -12,18 +12,21 @@
 
 <div class="login">
   <h2>Login</h2>
-  <form method="post" id="loginForm">
+  <form method="post" id="loginForm" action="{% url 'login' %}" autocomplete="off" >
     {% csrf_token %}
     {{ login_form.as_p }}
     <button type="submit" name="action" value="login">Login</button>
   </form>
 </div>
 
+<!-- Include the jQuery library -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
     function toggleRegistrationCodeField() {
+        <!-- Get the value of the chosen role -->
         const roleSelectVal = $("#regForm [name='role']").val();
+        <!-- Select the container of the code input field -->
         const registrationCodeField = $("#regForm [name='registration_code']").closest('p');
         if (roleSelectVal === "shelter") {
             registrationCodeField.show();
@@ -31,8 +34,9 @@ $(document).ready(function() {
             registrationCodeField.hide();
         }
     }
-
+    <!-- Call toggleRegistrationCodeField immediately when page is loaded -->
     toggleRegistrationCodeField();
+    <!-- Set up event listener that calls toggleRegistrationCodeField whenever the role changes -->
     $("#regForm [name='role']").change(toggleRegistrationCodeField);
 });
 </script>
