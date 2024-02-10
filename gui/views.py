@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import UserRegistrationForm
@@ -11,6 +12,9 @@ def index(request):
     return render(request, 'index.html')
 
 
+from .models import RegistrationCode
+
+
 def register_and_login(request):
     # Initialize forms regardless of request method or action
     reg_form = UserRegistrationForm(request.POST or None)
@@ -18,10 +22,23 @@ def register_and_login(request):
 
     if request.method == 'POST':
         if 'action' in request.POST and request.POST['action'] == 'register':
-            if reg_form.is_valid():
+            # Additional validation for registration code
+            registration_code = request.POST.get('registration_code')
+            username = request.POST.get('username')
+            valid_code = False
+
+            try:
+                code_entry = RegistrationCode.objects.get(username=username, code=registration_code, is_activated=False)
+                valid_code = True
+            except RegistrationCode.DoesNotExist:
+                messages.error(request, "Invalid registration code for this username or code already activated.")
+
+            if reg_form.is_valid() and valid_code:
                 user = reg_form.save(commit=False)
                 user.set_password(reg_form.cleaned_data['password'])
                 user.save()
+                code_entry.is_activated = True
+                code_entry.save()
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 return redirect('login')
         elif 'action' in request.POST and request.POST['action'] == 'login':

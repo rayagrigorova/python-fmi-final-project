@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import CustomUser
+from .models import RegistrationCode
 
 
 class CustomUserAdmin(admin.ModelAdmin):
@@ -10,4 +11,10 @@ class CustomUserAdmin(admin.ModelAdmin):
     fields = ('username', 'email', 'role', 'registration_code')  # Include fields to be displayed in the detail view
 
 
+class RegistrationCodeAdmin(admin.ModelAdmin):
+    list_display = ('code', 'username', 'is_activated')
+    search_fields = ('code', 'username')
+
+
 admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(RegistrationCode, RegistrationCodeAdmin)

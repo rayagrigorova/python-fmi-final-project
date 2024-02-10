@@ -19,26 +19,21 @@
   </form>
 </div>
 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script type="text/javascript">
-document.addEventListener("DOMContentLoaded", function() {
-  function toggleRegistrationCodeField() {
-      const roleSelect = document.querySelector("#regForm [name='role']");
-      const registrationCodeField = document.querySelector("#regForm [name='registration_code']").closest('p');
-      if (roleSelect && registrationCodeField) {
-      if (roleSelect.value === "shelter") {
-        registrationCodeField.style.display = ""; // Show
-      } else {
-        registrationCodeField.style.display = "none"; // Hide
-      }
+$(document).ready(function() {
+    function toggleRegistrationCodeField() {
+        const roleSelectVal = $("#regForm [name='role']").val();
+        const registrationCodeField = $("#regForm [name='registration_code']").closest('p');
+        if (roleSelectVal === "shelter") {
+            registrationCodeField.show();
+        } else {
+            registrationCodeField.hide();
+        }
     }
-  }
 
-    const roleSelect = document.querySelector("#regForm [name='role']");
-    if (roleSelect) {
-    roleSelect.addEventListener("change", toggleRegistrationCodeField);
-  }
-
-  toggleRegistrationCodeField();
+    toggleRegistrationCodeField();
+    $("#regForm [name='role']").change(toggleRegistrationCodeField);
 });
 </script>
 {% endblock %}
