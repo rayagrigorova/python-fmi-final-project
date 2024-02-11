@@ -59,11 +59,12 @@ class DogAdoptionPostForm(forms.ModelForm):
 class ShelterForm(forms.ModelForm):
     class Meta:
         model = Shelter
-        fields = ['name', 'working_hours', 'phone', 'latitude', 'longitude']
+        fields = ['name', 'working_hours', 'phone', 'address', 'latitude', 'longitude']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'working_hours': forms.Textarea(attrs={'class': 'form-control'}),
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
-            'latitude': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'longitude': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'address': forms.Textarea(attrs={'class': 'form-control'}),
+            'latitude': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.0000001'}),
+            'longitude': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.0000001'}),
         }

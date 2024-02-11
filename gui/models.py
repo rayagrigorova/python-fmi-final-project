@@ -27,6 +27,7 @@ class Shelter(models.Model):
     name = models.CharField(max_length=255)
     working_hours = models.TextField()
     phone = models.CharField(max_length=20)
+    address = models.CharField(max_length=255, blank=True, null=True)
     latitude = models.FloatField(default=0.0)
     longitude = models.FloatField(default=0.0)
 

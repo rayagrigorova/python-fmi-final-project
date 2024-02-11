@@ -54,15 +54,15 @@ class DogDetailView(DetailView):
 class ShelterDetailView(DetailView):
     model = Shelter
     template_name = 'shelter_details.html'
+    context_object_name = 'shelter'
 
-
-def shelter_map_view(request, shelter_id):
-    shelter = Shelter.objects.get(pk=shelter_id)
-    m = folium.Map(location=[shelter.latitude, shelter.longitude], zoom_start=15)
-    folium.Marker([shelter.latitude, shelter.longitude], tooltip=shelter.name).add_to(m)
-    map_html = m._repr_html_()
-    context = {'map_html': map_html}
-    return render(request, 'shelter_map.html', context)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        shelter = self.get_object()
+        m = folium.Map(location=[shelter.latitude, shelter.longitude], zoom_start=15)
+        folium.Marker([shelter.latitude, shelter.longitude], tooltip=shelter.name).add_to(m)
+        context['map_html'] = m._repr_html_()
+        return context
 
 
 @login_required(login_url='/register-login')

@@ -5,6 +5,11 @@
     <h1>{{ shelter.name }}</h1>
     <p><strong>Working hours:</strong> {{ shelter.working_hours }}</p>
     <p><strong>Phone number:</strong> {{ shelter.phone }}</p>
+    <p><strong>Address:</strong> {{ shelter.address }}</p>
+
+    <div id="shelter-map" style="height: 400px;">
+        {{ map_html|safe }}
+    </div>
 
 </div>
 {% endblock %}
