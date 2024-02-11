@@ -19,8 +19,8 @@ class RegistrationCodeAdmin(admin.ModelAdmin):
 
 
 class ShelterAdmin(admin.ModelAdmin):
-    list_display = ('name', 'working_hours', 'phone',)
-    search_fields = ('name', 'working_hours', 'phone')
+    list_display = ('name', 'working_hours', 'phone', 'user')
+    search_fields = ('name', 'working_hours', 'phone', 'user')
 
 
 class DogAdoptionPostAdmin(admin.ModelAdmin):

@@ -47,13 +47,12 @@ def register(request):
 class DogAdoptionPostForm(forms.ModelForm):
     class Meta:
         model = DogAdoptionPost
-        fields = ['name', 'age', 'gender', 'breed', 'description', 'shelter', 'image']
+        fields = ['name', 'age', 'gender', 'breed', 'description', 'image']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'age': forms.NumberInput(attrs={'class': 'form-control'}),
             'gender': forms.Select(attrs={'class': 'form-control'}),
             'breed': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control'}),
-            'shelter': forms.Select(attrs={'class': 'form-control'}),
             'image': forms.FileInput(attrs={'class': 'form-control'}),
         }

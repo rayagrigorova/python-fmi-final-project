@@ -18,42 +18,69 @@ def index(request):
     return render(request, 'index.html', {'dogs': dogs, 'shelters': shelters})
 
 
+# def register_and_login(request):
+#     reg_form = UserRegistrationForm()
+#     login_form = AuthenticationForm()
+#
+#     if request.method == 'POST':
+#         action = request.POST.get('action', '')
+#         if action == 'register':
+#             registration_code = request.POST.get('registration_code')
+#             reg_form = UserRegistrationForm(request.POST)
+#             username = request.POST.get('username')
+#             valid_code = False
+#
+#             try:
+#                 code_entry = RegistrationCode.objects.get(username=username, code=registration_code, is_activated=False)
+#                 valid_code = True
+#             except RegistrationCode.DoesNotExist:
+#                 pass
+#
+#             if reg_form.is_valid() and valid_code:
+#                 user = reg_form.save(commit=False)
+#                 user.set_password(reg_form.cleaned_data['password'])
+#                 user.save()
+#                 code_entry.is_activated = True
+#                 code_entry.save()
+#                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+#                 return redirect(reverse('login'))
+#
+#         elif action == 'login':
+#             if login_form.is_valid():
+#                 login_form = AuthenticationForm(data=request.POST)
+#                 user = authenticate(username=login_form.cleaned_data['username'],
+#                                     password=login_form.cleaned_data['password'])
+#                 if user is not None:
+#                     login(request, user)
+#                     return redirect(reverse('index'))
+#
+#     return render(request, 'registration/register_and_login.html', {'reg_form': reg_form, 'login_form': login_form})
+
 def register_and_login(request):
-    # Initialize forms regardless of request method or action
-    reg_form = UserRegistrationForm(request.POST or None)
-    login_form = AuthenticationForm(data=request.POST or None)
+    reg_form = UserRegistrationForm()
+    login_form = AuthenticationForm()
 
     if request.method == 'POST':
-        if 'action' in request.POST and request.POST['action'] == 'register':
-            # Additional validation for registration code
-            registration_code = request.POST.get('registration_code')
-            username = request.POST.get('username')
-            valid_code = False
-
-            try:
-                code_entry = RegistrationCode.objects.get(username=username, code=registration_code, is_activated=False)
-                valid_code = True
-            except RegistrationCode.DoesNotExist:
-                pass
-
-            if reg_form.is_valid() and valid_code:
+        action = request.POST.get('action', '')
+        if action == 'register':
+            reg_form = UserRegistrationForm(request.POST)
+            if reg_form.is_valid():
                 user = reg_form.save(commit=False)
                 user.set_password(reg_form.cleaned_data['password'])
                 user.save()
-                code_entry.is_activated = True
-                code_entry.save()
-                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-                return redirect(reverse('login'))
-        elif 'action' in request.POST and request.POST['action'] == 'login':
+                return redirect(reverse('login'))  #
+        elif action == 'login':
+            login_form = AuthenticationForm(data=request.POST, request=request)
             if login_form.is_valid():
-                user = authenticate(username=login_form.cleaned_data['username'],
-                                    password=login_form.cleaned_data['password'])
+                user = authenticate(request, username=request.POST['username'], password=request.POST['password'])
                 if user is not None:
                     login(request, user)
                     return redirect(reverse('index'))
 
-    return render(request, 'registration/register_and_login.html', {'reg_form': reg_form, 'login_form': login_form})
-
+    return render(request, 'registration/register_and_login.html', {
+        'reg_form': reg_form,
+        'login_form': login_form
+    })
 
 class DogDetailView(DetailView):
     model = DogAdoptionPost
@@ -75,7 +102,7 @@ def shelter_map_view(request, shelter_id):
     return render(request, 'shelter_map.html', context)
 
 
-@login_required
+@login_required(login_url='/register-login')
 def create_post(request):
     if request.user.role != 'shelter':
         return redirect('index')
