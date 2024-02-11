@@ -25,7 +25,7 @@ class RegistrationCode(models.Model):
 class Shelter(models.Model):
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, related_name='shelter', limit_choices_to={'role': 'shelter'}, null=True)
     name = models.CharField(max_length=255)
-    working_hours = models.CharField(max_length=255)
+    working_hours = models.TextField()
     phone = models.CharField(max_length=20)
     latitude = models.FloatField(default=0.0)
     longitude = models.FloatField(default=0.0)

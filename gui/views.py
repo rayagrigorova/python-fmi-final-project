@@ -4,8 +4,8 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.urls import reverse
 from django.views.generic import DetailView
 
-from .forms import UserRegistrationForm, DogAdoptionPostForm
-from django.shortcuts import render, redirect
+from .forms import UserRegistrationForm, DogAdoptionPostForm, ShelterForm
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import RegistrationCode, Shelter, DogAdoptionPost
 
 import folium
@@ -17,44 +17,6 @@ def index(request):
     shelters = Shelter.objects.all()
     return render(request, 'index.html', {'dogs': dogs, 'shelters': shelters})
 
-
-# def register_and_login(request):
-#     reg_form = UserRegistrationForm()
-#     login_form = AuthenticationForm()
-#
-#     if request.method == 'POST':
-#         action = request.POST.get('action', '')
-#         if action == 'register':
-#             registration_code = request.POST.get('registration_code')
-#             reg_form = UserRegistrationForm(request.POST)
-#             username = request.POST.get('username')
-#             valid_code = False
-#
-#             try:
-#                 code_entry = RegistrationCode.objects.get(username=username, code=registration_code, is_activated=False)
-#                 valid_code = True
-#             except RegistrationCode.DoesNotExist:
-#                 pass
-#
-#             if reg_form.is_valid() and valid_code:
-#                 user = reg_form.save(commit=False)
-#                 user.set_password(reg_form.cleaned_data['password'])
-#                 user.save()
-#                 code_entry.is_activated = True
-#                 code_entry.save()
-#                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-#                 return redirect(reverse('login'))
-#
-#         elif action == 'login':
-#             if login_form.is_valid():
-#                 login_form = AuthenticationForm(data=request.POST)
-#                 user = authenticate(username=login_form.cleaned_data['username'],
-#                                     password=login_form.cleaned_data['password'])
-#                 if user is not None:
-#                     login(request, user)
-#                     return redirect(reverse('index'))
-#
-#     return render(request, 'registration/register_and_login.html', {'reg_form': reg_form, 'login_form': login_form})
 
 def register_and_login(request):
     reg_form = UserRegistrationForm()
@@ -81,6 +43,7 @@ def register_and_login(request):
         'reg_form': reg_form,
         'login_form': login_form
     })
+
 
 class DogDetailView(DetailView):
     model = DogAdoptionPost
@@ -118,3 +81,16 @@ def create_post(request):
         form = DogAdoptionPostForm()
 
     return render(request, 'create_post.html', {'form': form})
+
+
+@login_required(login_url='/register-login')
+def edit_shelter(request, pk):
+    shelter = get_object_or_404(Shelter, pk=pk, user=request.user)
+    if request.method == 'POST':
+        form = ShelterForm(request.POST, instance=shelter)
+        if form.is_valid():
+            form.save()
+            return redirect('index')  # Redirect to the index page or wherever appropriate
+    else:
+        form = ShelterForm(instance=shelter)
+    return render(request, 'edit_shelter.html', {'form': form})

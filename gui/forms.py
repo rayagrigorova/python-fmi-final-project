@@ -4,7 +4,7 @@ from django.forms import ModelForm
 from django.shortcuts import render, redirect
 from django.urls import reverse
 
-from .models import RegistrationCode, DogAdoptionPost
+from .models import RegistrationCode, DogAdoptionPost, Shelter
 
 
 class UserRegistrationForm(forms.ModelForm):
@@ -55,4 +55,15 @@ class DogAdoptionPostForm(forms.ModelForm):
             'breed': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control'}),
             'image': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+class ShelterForm(forms.ModelForm):
+    class Meta:
+        model = Shelter
+        fields = ['name', 'working_hours', 'phone', 'latitude', 'longitude']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'working_hours': forms.Textarea(attrs={'class': 'form-control'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'latitude': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'longitude': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
