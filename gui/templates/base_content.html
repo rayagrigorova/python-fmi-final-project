@@ -1,0 +1,15 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Watchdog</title>
+    <link rel="icon" href="{% static 'logo.png' %}" type="image/png">
+    <link rel="stylesheet" href="{% static 'generic.css' %}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div id="dog-content">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base_content.html" %}
 
 {% block content %}
     <form action="{% url 'logout' %}" method="post">
@@ -13,7 +13,11 @@
         <h2>{{ dog.name }}</h2>
         <p>Age: {{ dog.age }}</p>
         <p>Breed: {{ dog.breed }}</p>
-        <img src="{{ dog.image.url }}" style="width: 200px; height: 200px;">
+        <div class="dog-image">
+            {% if dog.image %}
+                <img src="{{ dog.image.url }}" style="width: 200px; height: 200px;">
+            {% endif %}
+        </div>
         <p>Shelter: {{ dog.shelter.name }}</p>
         <a href="{% url 'dog_details' pk=dog.pk %}">View Details</a>
     </div>

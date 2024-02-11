@@ -1,10 +1,13 @@
-{% extends "base.html" %}
+{% extends "base_content.html" %}
+{% load static %}
 
 {% block content %}
 <div class="dog-details">
     <div class="dog-image">
         {% if dog.image %}
-        <img src="{{ dog.image.url }}" style="width: 200px; height: 200px;">
+            <img src="{{ dog.image.url }}" style="width: 200px; height: 200px;">
+        {% else %}
+            <img src="{% static 'dog_silhouette.jpg' %}" style="width: 200px; height: 200px;">
         {% endif %}
     </div>
     <div class="dog-info">
