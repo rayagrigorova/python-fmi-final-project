@@ -8,6 +8,10 @@
     </form>
     <div class="header">Welcome!</div>
 
+    {% if request.user.role == 'shelter' %}
+        <a href="{% url 'create_post' %}">Create Post</a>
+    {% endif %}
+
 <div class="dog-container">
     {% for dog in dogs %}
     <div class="dog-item">
@@ -22,7 +26,7 @@
             {% endif %}
         </div>
         <p>Shelter: {{ dog.shelter.name }}</p>
-        <a href="{% url 'dog_details' pk=dog.pk %}">View Details</a>
+        <a href="{% url 'dog-details' pk=dog.pk %}">View Details</a>
     </div>
     {% endfor %}
 </div>

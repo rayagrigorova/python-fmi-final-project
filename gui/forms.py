@@ -1,9 +1,10 @@
 from django.contrib.auth import get_user_model
 from django import forms
+from django.forms import ModelForm
 from django.shortcuts import render, redirect
 from django.urls import reverse
 
-from .models import RegistrationCode
+from .models import RegistrationCode, DogAdoptionPost
 
 
 class UserRegistrationForm(forms.ModelForm):
@@ -42,3 +43,17 @@ def register(request):
     else:
         form = UserRegistrationForm()
     return render(request, 'registration/register.html', {'form': form})
+
+class DogAdoptionPostForm(forms.ModelForm):
+    class Meta:
+        model = DogAdoptionPost
+        fields = ['name', 'age', 'gender', 'breed', 'description', 'shelter', 'image']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'age': forms.NumberInput(attrs={'class': 'form-control'}),
+            'gender': forms.Select(attrs={'class': 'form-control'}),
+            'breed': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
+            'shelter': forms.Select(attrs={'class': 'form-control'}),
+            'image': forms.FileInput(attrs={'class': 'form-control'}),
+        }

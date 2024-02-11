@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.urls import reverse
@@ -22,6 +23,8 @@ class RegistrationCode(models.Model):
 
 
 class Shelter(models.Model):
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='shelter',
+                             limit_choices_to={'role': 'shelter'}, null=True)
     name = models.CharField(max_length=255)
     working_hours = models.CharField(max_length=255)
     phone = models.CharField(max_length=20)
@@ -46,7 +49,7 @@ class DogAdoptionPost(models.Model):
     gender = models.CharField(max_length=6, choices=GENDER_CHOICES)
     breed = models.CharField(max_length=255)
     description = models.TextField()
-    shelter = models.ForeignKey(Shelter, on_delete=models.CASCADE)
+    shelter = models.ForeignKey(Shelter, on_delete=models.CASCADE, null=True)
     image = models.ImageField(upload_to='dogs/', blank=True, null=True)
 
     def __str__(self):

@@ -4,7 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.urls import reverse
 from django.views.generic import DetailView
 
-from .forms import UserRegistrationForm
+from .forms import UserRegistrationForm, DogAdoptionPostForm
 from django.shortcuts import render, redirect
 from .models import RegistrationCode, Shelter, DogAdoptionPost
 
@@ -73,3 +73,21 @@ def shelter_map_view(request, shelter_id):
     map_html = m._repr_html_()
     context = {'map_html': map_html}
     return render(request, 'shelter_map.html', context)
+
+
+@login_required
+def create_post(request):
+    if request.user.role != 'shelter':
+        return redirect('index')
+
+    if request.method == 'POST':
+        form = DogAdoptionPostForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.shelter = request.user.shelter
+            post.save()
+            return redirect('index')
+    else:
+        form = DogAdoptionPostForm()
+
+    return render(request, 'create_post.html', {'form': form})
