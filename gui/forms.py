@@ -8,6 +8,7 @@ from .models import RegistrationCode, DogAdoptionPost, Shelter
 
 
 class UserRegistrationForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
     class Meta:
         model = get_user_model()
         fields = ['username', 'password', 'role', 'registration_code']

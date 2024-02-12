@@ -65,6 +65,21 @@ class UserRegistrationAndLoginTests(TestCase):
         self.assertEqual(reg_form.errors['registration_code'],
                          ["Invalid registration code for this username or code already activated."])
 
+    def test_shelter_registration_with_code_belonging_to_other(self):
+        response = self.client.post(reverse('register_and_login'), {
+            'username': 'not_shelteruser2',
+            'password': '123456',
+            'role': 'shelter',
+            'registration_code': self.valid_code.code,
+            'action': 'register'
+        })
+        reg_form = response.context.get('reg_form')
+
+        self.assertFalse(reg_form.is_valid())
+        self.assertIn('registration_code', reg_form.errors)
+        self.assertEqual(reg_form.errors['registration_code'],
+                         ["Invalid registration code for this username or code already activated."])
+
     def test_shelter_registration_without_code(self):
         response = self.client.post(reverse('register_and_login'), {
             'username': 'shelteruser3',
@@ -133,6 +148,20 @@ class UserLoginTests(TestCase):
         response = self.client.post(reverse('login'), {'username': 'testuser', 'password': 'password123'}, follow=True)
         self.assertTrue(response.context['user'].is_authenticated)
         self.assertRedirects(response, reverse('index'))
+
+    def test_login_user_wrong_password(self):
+        response = self.client.post(reverse('login'), {'username': 'testuser', 'password': 'wrong_password1234'}, follow=True)
+        form = response.context.get('form')
+        self.assertFalse(response.context['user'].is_authenticated)
+        self.assertTrue(form.errors)
+        self.assertIn("Please enter a correct username and password.", str(form.errors))
+
+    def test_login_user_nonexistent_profile(self):
+        response = self.client.post(reverse('login'), {'username': 'nonexistent', 'password': '123456'}, follow=True)
+        form = response.context.get('form')
+        self.assertFalse(response.context['user'].is_authenticated)
+        self.assertTrue(form.errors)
+        self.assertIn("Please enter a correct username and password.", str(form.errors))
 
 
 class UserRegistrationFormTest(TestCase):
