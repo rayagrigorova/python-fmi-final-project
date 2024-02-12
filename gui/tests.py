@@ -19,7 +19,7 @@ class UserRegistrationAndLoginTests(TestCase):
 
     def test_register_and_login_ordinary_user(self):
         url = reverse('register_and_login')
-        register_response = self.client.post(url, {
+        self.client.post(url, {
             'username': 'ordinaryuser',
             'password': 'testpassword123',
             'role': 'ordinary',
@@ -186,7 +186,7 @@ class DogAdoptionPostCreateTests(TestCase):
 
     def test_create_post_as_shelter_user(self):
         self.client.login(username='shelteruser', password='123456')
-        response = self.client.post(reverse('create_post'), {
+        self.client.post(reverse('create_post'), {
             'name': 'kucho',
             'age': 927372,
             'gender': 'male',
@@ -200,8 +200,8 @@ class DogAdoptionPostCreateTests(TestCase):
         self.assertEqual(DogAdoptionPost.objects.first().name, 'kucho')
 
     def test_create_post_as_non_shelter_user(self):
-        ordinary_user = get_user_model().objects.create_user(username='ordinaryuser', password='123456',
-                                                             role='ordinary')
+        get_user_model().objects.create_user(username='ordinaryuser', password='123456',
+                                             role='ordinary')
         self.client.login(username='ordinaryuser', password='123456')
         response = self.client.post(reverse('create_post'), {
             'name': 'kucho',
@@ -238,6 +238,7 @@ class DogAdoptionPostEditTests(TestCase):
     def setUp(self):
         self.shelter_user = get_user_model().objects.create_user(username='shelteruser', password='123456',
                                                                  role='shelter')
+        self.shelter = Shelter.objects.get(user=self.shelter_user)
         self.other_shelter_user = get_user_model().objects.create_user(username='othershelteruser',
                                                                        password='123456', role='shelter')
         self.ordinary_user = get_user_model().objects.create_user(username='ordinaryuser', password='123456',
@@ -263,7 +264,23 @@ class DogAdoptionPostEditTests(TestCase):
         self.assertEqual(self.post.name, 'novo ime')
         self.assertEqual(self.post.age, 29922)
 
-    def test_edit_post_as_creator_with_invalid_changes(self):
+    def test_edit_post_as_creator_with_invalid_field(self):
+        self.client.login(username='shelteruser', password='123456')
+        post_edit_url = reverse('edit_post', kwargs={'pk': self.post.pk})
+        response = self.client.post(post_edit_url, {
+            'name': 'novo ime',
+            'age': 'dieset',
+            'gender': 'female',
+            'breed': 'kotence',
+            'description': 'malak pisan',
+            'size': 'XL',
+        }, follow=True)
+        self.assertEqual(response.status_code, 200)
+        form = response.context['form']
+        self.assertIn('age', form.errors)
+        self.assertEqual(form.errors['age'], ['Enter a whole number.'])
+
+    def test_edit_post_as_creator_with_missing_field(self):
         self.client.login(username='shelteruser', password='123456')
         post_edit_url = reverse('edit_post', kwargs={'pk': self.post.pk})
         response = self.client.post(post_edit_url, {
@@ -329,3 +346,84 @@ class PostDeletionTests(TestCase):
         self.client.login(username='shelter1', password='123456')
         response = self.client.post(self.delete_url, follow=True)
         self.assertRedirects(response, reverse('index'))
+
+
+class ShelterProfileEditTests(TestCase):
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username='shelter1', password='123456', role='shelter')
+        self.shelter = Shelter.objects.get(user=self.user)
+        self.edit_url = reverse('edit_shelter', kwargs={'pk': self.shelter.pk})
+
+    def test_shelter_can_edit_profile(self):
+        self.client.login(username='shelter1', password='123456')
+        response = self.client.post(self.edit_url, {
+            'name': 'new name',
+            'working_hours': '9-17',
+            'phone': '01234',
+            'address': 'new address',
+            'latitude': 2.4,
+            'longitude': 4.5
+        })
+        self.shelter.refresh_from_db()
+        if response.status_code != 302:
+            print(response.context['form'].errors)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.shelter.name, 'new name')
+        self.assertEqual(self.shelter.working_hours, '9-17')
+        self.assertEqual(self.shelter.phone, '01234')
+        self.assertEqual(self.shelter.address, 'new address')
+        self.assertEqual(self.shelter.latitude, 2.4)
+        self.assertEqual(self.shelter.longitude, 4.5)
+
+    def test_cannot_edit_profile_ordinary(self):
+        get_user_model().objects.create_user(username='evil', password='666')
+        self.client.login(username='evil', password='666')
+        response = self.client.post(self.edit_url, {'name': 'hehehehehehee'})
+        self.shelter.refresh_from_db()
+        self.assertNotEqual(self.shelter.name, 'hehehehehehee')
+        self.assertNotEqual(response.status_code, 302)
+
+    def test_cannot_edit_profile_shelter(self):
+        get_user_model().objects.create_user(username='evil_shelter', password='666', role='shelter')
+        self.client.login(username='evil_shelter', password='666')
+        response = self.client.post(self.edit_url, {'name': 'hehehehehehee'})
+        self.shelter.refresh_from_db()
+        self.assertNotEqual(self.shelter.name, 'hehehehehehee')
+        self.assertNotEqual(response.status_code, 302)
+
+    def test_shelter_edit_invalid_form(self):
+        self.client.login(username='shelter1', password='123456')
+        response = self.client.post(self.edit_url, {
+            'name': 'new name',
+            'working_hours': '9-17',
+            'phone': '01234',
+            'address': 'new address',
+            'longitude': 4.5
+        })
+        self.shelter.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        form_errors = response.context['form'].errors
+        self.assertIn('latitude', form_errors)
+        self.assertIn('This field is required.', form_errors['latitude'])
+
+
+    def test_edit_without_login(self):
+        response = self.client.get(self.edit_url, follow=True)
+        expected_login_url = reverse('register_and_login') + f"?next={self.edit_url}"
+        self.assertRedirects(response, expected_login_url)
+
+    def test_response_and_redirect_after_successful_edit(self):
+        self.client.login(username='shelter1', password="123456")
+        response = self.client.post(self.edit_url, {
+            'name': 'new name',
+            'working_hours': '9-17',
+            'phone': '1111',
+            'address': 'new address',
+            'latitude': 30.0,
+            'longitude': 40.0,
+        }, follow=True)
+
+        self.assertRedirects(response, reverse('index'))
+        self.shelter.refresh_from_db()
+        self.assertEqual(self.shelter.name, 'new name')
