@@ -2,16 +2,18 @@ from django.test import TestCase
 from django.urls import reverse
 
 from .forms import UserRegistrationForm
-from .models import CustomUser, RegistrationCode
+from .models import CustomUser, RegistrationCode, DogAdoptionPost, Shelter
 from django.contrib.auth import get_user_model
 
 
 class UserRegistrationAndLoginTests(TestCase):
     def setUp(self):
         # This is a code that can be used when a new shelter user is registered
-        self.valid_code = RegistrationCode.objects.create(code="validcode123", username="shelteruser", is_activated=False)
+        self.valid_code = RegistrationCode.objects.create(code="validcode123", username="shelteruser",
+                                                          is_activated=False)
         # This is a code which is already activated (meaning that it's invalid and can't be used)
-        self.activated_code = RegistrationCode.objects.create(code="activatedcode123", username="shelteruser2", is_activated=True)
+        self.activated_code = RegistrationCode.objects.create(code="activatedcode123", username="shelteruser2",
+                                                              is_activated=True)
         # An existing user is created to test if attempts to create a new user fail
         CustomUser.objects.create_user(username='existinguser', password='testpassword123', role='ordinary')
 
@@ -95,7 +97,7 @@ class UserRegistrationAndLoginTests(TestCase):
 
     def test_shelter_registration_with_existing_username(self):
         valid_code_for_existing_user = RegistrationCode.objects.create(code="code123456", username="existinguser",
-                                                          is_activated=False)
+                                                                       is_activated=False)
         response = self.client.post(reverse('register_and_login'), {
             'username': 'existinguser',
             'password': 'testpassword123',
@@ -150,7 +152,8 @@ class UserLoginTests(TestCase):
         self.assertRedirects(response, reverse('index'))
 
     def test_login_user_wrong_password(self):
-        response = self.client.post(reverse('login'), {'username': 'testuser', 'password': 'wrong_password1234'}, follow=True)
+        response = self.client.post(reverse('login'), {'username': 'testuser', 'password': 'wrong_password1234'},
+                                    follow=True)
         form = response.context.get('form')
         self.assertFalse(response.context['user'].is_authenticated)
         self.assertTrue(form.errors)
@@ -173,3 +176,58 @@ class UserRegistrationFormTest(TestCase):
         }
         form = UserRegistrationForm(data=form_data)
         self.assertTrue(form.is_valid(), form.errors.as_text())
+
+
+class DogAdoptionPostTests(TestCase):
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username='shelteruser', password='123456', role='shelter')
+        self.shelter = Shelter.objects.get(user=self.user)
+
+    def test_create_post_as_shelter_user(self):
+        self.client.login(username='shelteruser', password='123456')
+        response = self.client.post(reverse('create_post'), {
+            'name': 'kucho',
+            'age': 927372,
+            'gender': 'male',
+            'breed': 'nqma',
+            'description': 'bez komentar',
+            'size': 'XL',
+            'shelter': self.shelter.id
+        }, follow=True)
+
+        self.assertEqual(DogAdoptionPost.objects.count(), 1)
+        self.assertEqual(DogAdoptionPost.objects.first().name, 'kucho')
+
+    def test_create_post_as_non_shelter_user(self):
+        ordinary_user = get_user_model().objects.create_user(username='ordinaryuser', password='123456',
+                                                             role='ordinary')
+        self.client.login(username='ordinaryuser', password='123456')
+        response = self.client.post(reverse('create_post'), {
+            'name': 'kucho',
+            'age': 927372,
+            'gender': 'male',
+            'breed': 'nqma',
+            'description': 'bez komentar',
+            'size': 'XL',
+            'shelter': self.shelter.id
+        }, follow=True)
+        self.assertRedirects(response, reverse('index'))
+        messages = list(response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), "You do not have permission to create a post.")
+        self.assertEqual(DogAdoptionPost.objects.count(), 0)
+
+    def test_create_post_form_validation(self):
+        self.client.login(username='shelteruser', password='123456')
+        # The required field 'age' is missing
+        response = self.client.post(reverse('create_post'), {
+            'name': 'kucho',
+            'gender': 'male',
+            'breed': 'nqma',
+            'description': 'bez komentar',
+            'size': 'XL',
+            'shelter': self.shelter.id
+        }, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("This field is required.", str(response.context['form']))

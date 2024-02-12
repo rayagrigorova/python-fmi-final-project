@@ -9,7 +9,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import RegistrationCode, Shelter, DogAdoptionPost
 
 import folium
-
+from django.contrib import messages
 
 def register(request):
     if request.method == 'POST':
@@ -98,6 +98,7 @@ class ShelterDetailView(DetailView):
 @login_required(login_url='/register-login')
 def create_post(request):
     if request.user.role != 'shelter':
+        messages.error(request, "You do not have permission to create a post.")
         return redirect('index')
 
     if request.method == 'POST':
