@@ -244,7 +244,8 @@ class DogAdoptionPostEditTests(TestCase):
                                                                   role='ordinary')
 
         self.post = DogAdoptionPost.objects.create(name="kuchence", age=1, gender="male", breed="ulichna prevuzhodna",
-                                                   description="mqu", shelter=Shelter.objects.get(user=self.shelter_user), size="XS")
+                                                   description="mqu",
+                                                   shelter=Shelter.objects.get(user=self.shelter_user), size="XS")
 
     def test_edit_post_as_creator_with_valid_changes(self):
         self.client.login(username='shelteruser', password='123456')
@@ -287,3 +288,44 @@ class DogAdoptionPostEditTests(TestCase):
         post_edit_url = reverse('edit_post', kwargs={'pk': self.post.pk})
         response = self.client.get(post_edit_url)
         self.assertNotEqual(response.status_code, 200)
+
+
+class PostDeletionTests(TestCase):
+
+    def setUp(self):
+        self.shelter1 = get_user_model().objects.create_user(username='shelter1', password='123456',
+                                                             role='shelter')
+        self.shelter2 = get_user_model().objects.create_user(username='shelter2', password='123456',
+                                                             role='shelter')
+
+        self.ordinary_user = get_user_model().objects.create_user(username='ordinaryuser', password='123456',
+                                                                  role='ordinary')
+
+        self.post = DogAdoptionPost.objects.create(name="doggo", age=7, gender="male", breed="poroda",
+                                                   description="dobro momche po princip ne hape mnogo",
+                                                   shelter=Shelter.objects.get(user=self.shelter1), size="M")
+
+        self.delete_url = reverse('delete_post', kwargs={'post_id': self.post.id})
+
+    def test_shelter_user_delete_own_post(self):
+        self.client.login(username='shelter1', password='123456')
+        response = self.client.post(self.delete_url)
+        self.assertRedirects(response, reverse('index'))
+        self.assertFalse(DogAdoptionPost.objects.filter(id=self.post.id).exists())
+
+    def test_ordinary_user_cannot_delete_post(self):
+        self.client.login(username='ordinaryuser', password='123456')
+        response = self.client.post(self.delete_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(DogAdoptionPost.objects.filter(id=self.post.id).exists())
+
+    def test_cannot_delete_another_shelters_post(self):
+        self.client.login(username='shelter2', password='123456')
+        response = self.client.post(self.delete_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(DogAdoptionPost.objects.filter(id=self.post.id).exists())
+
+    def test_redirect_after_delete(self):
+        self.client.login(username='shelter1', password='123456')
+        response = self.client.post(self.delete_url, follow=True)
+        self.assertRedirects(response, reverse('index'))
