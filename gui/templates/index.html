@@ -7,6 +7,11 @@
         <button type="submit" class="float-right">Logout</button>
     </form>
 
+    <form method="get" action="">
+        {{ form.as_p }}
+        <button type="submit">Filter</button>
+    </form>
+
 {% if request.user.role == 'shelter' %}
 <form action="{% url 'create_post' %}" method="get" >
     {% csrf_token %}

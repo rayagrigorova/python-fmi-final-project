@@ -407,7 +407,6 @@ class ShelterProfileEditTests(TestCase):
         self.assertIn('latitude', form_errors)
         self.assertIn('This field is required.', form_errors['latitude'])
 
-
     def test_edit_without_login(self):
         response = self.client.get(self.edit_url, follow=True)
         expected_login_url = reverse('register_and_login') + f"?next={self.edit_url}"
@@ -423,7 +422,8 @@ class ShelterProfileEditTests(TestCase):
             'latitude': 30.0,
             'longitude': 40.0,
         }, follow=True)
+        self.shelter.refresh_from_db()
 
         self.assertRedirects(response, reverse('index'))
-        self.shelter.refresh_from_db()
         self.assertEqual(self.shelter.name, 'new name')
+

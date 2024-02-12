@@ -9,6 +9,7 @@ from .models import RegistrationCode, DogAdoptionPost, Shelter
 
 class UserRegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+
     class Meta:
         model = get_user_model()
         fields = ['username', 'password', 'role', 'registration_code']
@@ -66,3 +67,16 @@ class ShelterForm(forms.ModelForm):
             'latitude': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.0000001'}),
             'longitude': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.0000001'}),
         }
+
+
+class SortFilterForm(forms.Form):
+    shelter = forms.ModelChoiceField(queryset=Shelter.objects.all(), required=False, empty_label="All Shelters")
+    size = forms.ChoiceField(choices=[('', 'All')] + DogAdoptionPost.SIZE_CHOICES, required=False)
+    breed = forms.ChoiceField(choices=[], required=False)
+    gender = forms.ChoiceField(choices=[('', 'All'), ('male', 'Male'), ('female', 'Female')], required=False)
+    sort_by = forms.ChoiceField(choices=[('name', 'Name'), ('age', 'Age'), ('size', 'Size')], required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(SortFilterForm, self).__init__(*args, **kwargs)
+        unique_breeds = DogAdoptionPost.objects.values_list('breed', flat=True).distinct()
+        self.fields['breed'].choices = [('', 'All')] + [(breed, breed) for breed in unique_breeds if breed]

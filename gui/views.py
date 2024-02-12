@@ -4,7 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, UpdateView
 
-from .forms import UserRegistrationForm, DogAdoptionPostForm, ShelterForm
+from .forms import UserRegistrationForm, DogAdoptionPostForm, ShelterForm, SortFilterForm
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import RegistrationCode, Shelter, DogAdoptionPost
 
@@ -16,7 +16,22 @@ from django.contrib import messages
 def index(request):
     dogs = DogAdoptionPost.objects.all()
     shelters = Shelter.objects.all()
-    return render(request, 'index.html', {'dogs': dogs, 'shelters': shelters})
+
+    form = SortFilterForm(request.GET)
+
+    if form.is_valid():
+        if form.cleaned_data['shelter']:
+            dogs = dogs.filter(shelter=form.cleaned_data['shelter'])
+        if form.cleaned_data['size']:
+            dogs = dogs.filter(size=form.cleaned_data['size'])
+        if form.cleaned_data['breed']:
+            dogs = dogs.filter(breed__icontains=form.cleaned_data['breed'])
+        if form.cleaned_data['gender']:
+            dogs = dogs.filter(gender=form.cleaned_data['gender'])
+        if form.cleaned_data['sort_by']:
+            dogs = dogs.order_by(form.cleaned_data['sort_by'])
+
+    return render(request, 'index.html', {'dogs': dogs, 'shelters': shelters, 'form': form})
 
 
 def register_and_login(request):
