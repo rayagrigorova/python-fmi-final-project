@@ -11,6 +11,19 @@ from .models import RegistrationCode, Shelter, DogAdoptionPost
 import folium
 
 
+def register(request):
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data['password'])
+            user.save()
+            return redirect(reverse('login'))
+    else:
+        form = UserRegistrationForm()
+    return render(request, 'registration/register.html', {'form': form})
+
+
 @login_required(login_url='/register-login')
 def index(request):
     dogs = DogAdoptionPost.objects.all()
@@ -32,7 +45,8 @@ def register_and_login(request):
                 if user_role == 'shelter':
                     registration_code_input = reg_form.cleaned_data.get('registration_code')
                     try:
-                        registration_code = RegistrationCode.objects.get(code=registration_code_input, is_activated=False)
+                        registration_code = RegistrationCode.objects.get(code=registration_code_input,
+                                                                         is_activated=False)
                         registration_code.is_activated = True
                         registration_code.save()
                     except RegistrationCode.DoesNotExist:
@@ -121,6 +135,7 @@ class EditDogPostView(UpdateView):
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.filter(shelter__user=self.request.user)
+
 
 @login_required(login_url='/register-login')
 def delete_post(request, post_id):

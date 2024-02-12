@@ -38,19 +38,6 @@ class UserRegistrationForm(forms.ModelForm):
         return cleaned_data
 
 
-def register(request):
-    if request.method == 'POST':
-        form = UserRegistrationForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.set_password(form.cleaned_data['password'])
-            user.save()
-            return redirect(reverse('login'))
-    else:
-        form = UserRegistrationForm()
-    return render(request, 'registration/register.html', {'form': form})
-
-
 class DogAdoptionPostForm(forms.ModelForm):
     class Meta:
         model = DogAdoptionPost

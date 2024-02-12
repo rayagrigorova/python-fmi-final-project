@@ -2,7 +2,7 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 
 from . import views
-from .forms import register
+from .views import register
 from .views import register_and_login, DogDetailView, ShelterDetailView, create_post, edit_shelter, EditDogPostView, \
     delete_post
 
