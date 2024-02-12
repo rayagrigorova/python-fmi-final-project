@@ -10,7 +10,7 @@ class CustomUser(AbstractUser):
         ('shelter', 'Shelter'),
     )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='ordinary')
-    registration_code = models.CharField(max_length=100, default=0)
+    registration_code = models.CharField(max_length=100,  blank=True, null=True)
 
 
 class RegistrationCode(models.Model):

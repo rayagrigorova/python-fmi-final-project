@@ -78,6 +78,30 @@ class UserRegistrationAndLoginTests(TestCase):
         self.assertIn('registration_code', reg_form.errors)
         self.assertIn("This field is required for shelters.", reg_form.errors['registration_code'])
 
+    def test_shelter_registration_with_existing_username(self):
+        valid_code_for_existing_user = RegistrationCode.objects.create(code="code123456", username="existinguser",
+                                                          is_activated=False)
+        response = self.client.post(reverse('register_and_login'), {
+            'username': 'existinguser',
+            'password': 'testpassword123',
+            'role': 'shelter',
+            'registration_code': valid_code_for_existing_user.code,
+            'action': 'register'
+        })
+        reg_form = response.context.get('reg_form')
+
+        self.assertFalse(reg_form.is_valid())
+        self.assertIn('username', reg_form.errors)
+        self.assertEqual(reg_form.errors['username'], ["A user with that username already exists."])
+
+    def test_ordinary_user_login_nonexistent_username(self):
+        response = self.client.post(reverse('login'), {
+            'username': 'nonexistent',
+            'password': '123456',
+        })
+        self.assertEqual(response.context['form'].non_field_errors(),
+                         ['Please enter a correct username and password. Note that both fields may be case-sensitive.'])
+
     def test_register_and_login_shelter_user(self):
         url = reverse('register_and_login')
         self.client.post(url, {
