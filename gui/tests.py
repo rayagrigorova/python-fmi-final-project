@@ -178,7 +178,7 @@ class UserRegistrationFormTest(TestCase):
         self.assertTrue(form.is_valid(), form.errors.as_text())
 
 
-class DogAdoptionPostTests(TestCase):
+class DogAdoptionPostCreateTests(TestCase):
 
     def setUp(self):
         self.user = get_user_model().objects.create_user(username='shelteruser', password='123456', role='shelter')
@@ -231,3 +231,59 @@ class DogAdoptionPostTests(TestCase):
         }, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn("This field is required.", str(response.context['form']))
+
+
+class DogAdoptionPostEditTests(TestCase):
+
+    def setUp(self):
+        self.shelter_user = get_user_model().objects.create_user(username='shelteruser', password='123456',
+                                                                 role='shelter')
+        self.other_shelter_user = get_user_model().objects.create_user(username='othershelteruser',
+                                                                       password='123456', role='shelter')
+        self.ordinary_user = get_user_model().objects.create_user(username='ordinaryuser', password='123456',
+                                                                  role='ordinary')
+
+        self.post = DogAdoptionPost.objects.create(name="kuchence", age=1, gender="male", breed="ulichna prevuzhodna",
+                                                   description="mqu", shelter=Shelter.objects.get(user=self.shelter_user), size="XS")
+
+    def test_edit_post_as_creator_with_valid_changes(self):
+        self.client.login(username='shelteruser', password='123456')
+        post_edit_url = reverse('edit_post', kwargs={'pk': self.post.pk})
+        response = self.client.post(post_edit_url, {
+            'name': 'novo ime',
+            'age': 29922,
+            'gender': 'female',
+            'breed': 'kotence',
+            'description': 'malak pisan',
+            'size': 'XL',
+        }, follow=True)
+        self.post.refresh_from_db()
+        self.assertRedirects(response, reverse('index'))
+        self.assertEqual(self.post.name, 'novo ime')
+        self.assertEqual(self.post.age, 29922)
+
+    def test_edit_post_as_creator_with_invalid_changes(self):
+        self.client.login(username='shelteruser', password='123456')
+        post_edit_url = reverse('edit_post', kwargs={'pk': self.post.pk})
+        response = self.client.post(post_edit_url, {
+            # 'age' field is left empty
+            'name': 'novo ime',
+            'gender': 'female',
+            'breed': 'kotence',
+            'description': 'malak pisan',
+            'size': 'XL',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('age' in response.context['form'].errors)
+
+    def test_edit_post_as_other_shelter_user(self):
+        self.client.login(username='othershelteruser', password='123456')
+        post_edit_url = reverse('edit_post', kwargs={'pk': self.post.pk})
+        response = self.client.get(post_edit_url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_edit_post_as_ordinary_user(self):
+        self.client.login(username='ordinaryuser', password='123456')
+        post_edit_url = reverse('edit_post', kwargs={'pk': self.post.pk})
+        response = self.client.get(post_edit_url)
+        self.assertNotEqual(response.status_code, 200)

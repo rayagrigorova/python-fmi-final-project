@@ -11,6 +11,7 @@ from .models import RegistrationCode, Shelter, DogAdoptionPost
 import folium
 from django.contrib import messages
 
+
 def register(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
@@ -121,7 +122,7 @@ def edit_shelter(request, pk):
         form = ShelterForm(request.POST, instance=shelter)
         if form.is_valid():
             form.save()
-            return redirect('index')  # Redirect to the index page or wherever appropriate
+            return redirect('index')
     else:
         form = ShelterForm(instance=shelter)
     return render(request, 'edit_shelter.html', {'form': form})
