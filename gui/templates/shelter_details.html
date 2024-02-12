@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+<button onclick="history.back();">Back</button>
 <div class="shelter-details">
     <h1>{{ shelter.name }}</h1>
     <p><strong>Working hours:</strong> {{ shelter.working_hours }}</p>

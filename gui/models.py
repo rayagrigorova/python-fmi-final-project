@@ -10,7 +10,7 @@ class CustomUser(AbstractUser):
         ('shelter', 'Shelter'),
     )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='ordinary')
-    registration_code = models.CharField(max_length=100, blank=True, null=True)
+    registration_code = models.CharField(max_length=100, default=0)
 
 
 class RegistrationCode(models.Model):
@@ -27,7 +27,7 @@ class Shelter(models.Model):
     name = models.CharField(max_length=255)
     working_hours = models.TextField()
     phone = models.CharField(max_length=20)
-    address = models.CharField(max_length=255, blank=True, null=True)
+    address = models.CharField(max_length=255, default='')
     latitude = models.FloatField(default=0.0)
     longitude = models.FloatField(default=0.0)
 
@@ -44,13 +44,22 @@ class DogAdoptionPost(models.Model):
         ('female', 'Female'),
     ]
 
+    SIZE_CHOICES = [
+        ('XS', 'Extra Small'),
+        ('S', 'Small'),
+        ('M', 'Medium'),
+        ('L', 'Big'),
+        ('XL', 'Extra Large'),
+    ]
+
     name = models.CharField(max_length=255)
     age = models.PositiveIntegerField()
     gender = models.CharField(max_length=6, choices=GENDER_CHOICES)
     breed = models.CharField(max_length=255)
-    description = models.TextField()
+    description = models.TextField(blank=True)
     shelter = models.ForeignKey(Shelter, on_delete=models.CASCADE, null=True)
     image = models.ImageField(upload_to='dogs/', blank=True, null=True)
+    size = models.CharField(max_length=2, choices=SIZE_CHOICES, default='M')
 
     def __str__(self):
         return self.name

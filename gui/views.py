@@ -1,8 +1,8 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
-from django.urls import reverse
-from django.views.generic import DetailView
+from django.urls import reverse, reverse_lazy
+from django.views.generic import DetailView, UpdateView
 
 from .forms import UserRegistrationForm, DogAdoptionPostForm, ShelterForm
 from django.shortcuts import render, redirect, get_object_or_404
@@ -27,10 +27,27 @@ def register_and_login(request):
         if action == 'register':
             reg_form = UserRegistrationForm(request.POST)
             if reg_form.is_valid():
+                user_role = reg_form.cleaned_data.get('role')
+                registration_code = None
+                if user_role == 'shelter':
+                    registration_code_input = reg_form.cleaned_data.get('registration_code')
+                    try:
+                        registration_code = RegistrationCode.objects.get(code=registration_code_input, is_activated=False)
+                    except RegistrationCode.DoesNotExist:
+                        reg_form.add_error('registration_code', 'Invalid or already activated registration code.')
+                        return render(request, 'registration/register_and_login.html', {
+                            'reg_form': reg_form,
+                            'login_form': login_form
+                        })
+                    registration_code.is_activated = True
+                    registration_code.save()
+
                 user = reg_form.save(commit=False)
                 user.set_password(reg_form.cleaned_data['password'])
                 user.save()
-                return redirect(reverse('login'))  #
+
+                return redirect(reverse('login'))
+
         elif action == 'login':
             login_form = AuthenticationForm(data=request.POST, request=request)
             if login_form.is_valid():
@@ -94,3 +111,24 @@ def edit_shelter(request, pk):
     else:
         form = ShelterForm(instance=shelter)
     return render(request, 'edit_shelter.html', {'form': form})
+
+
+class EditDogPostView(UpdateView):
+    model = DogAdoptionPost
+    form_class = DogAdoptionPostForm
+    template_name = 'edit_dog_post.html'
+    success_url = reverse_lazy('index')
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.filter(shelter__user=self.request.user)
+
+@login_required(login_url='/register-login')
+def delete_post(request, post_id):
+    post = get_object_or_404(DogAdoptionPost, id=post_id)
+
+    if request.user != post.shelter.user:
+        return redirect('index')
+
+    post.delete()
+    return redirect('index')

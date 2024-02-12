@@ -6,11 +6,16 @@
         {% csrf_token %}
         <button type="submit" class="float-right">Logout</button>
     </form>
-    <div class="header">Welcome!</div>
 
 {% if request.user.role == 'shelter' %}
-    <a href="{% url 'create_post' %}">Create Post</a>
-    <a href="{% url 'edit_shelter' request.user.shelter.id %}" class="btn btn-primary">Edit Shelter Profile</a>
+<form action="{% url 'create_post' %}" method="get" >
+    {% csrf_token %}
+    <button type="submit" class="float-right">Create Post</button>
+</form>
+<form action="{% url 'edit_shelter' request.user.shelter.id %}" method="get">
+    {% csrf_token %}
+    <button type="submit" class="float-right">Edit Shelter Profile</button>
+</form>
 {% endif %}
 
 <div class="dog-container">
@@ -19,6 +24,7 @@
         <h2>{{ dog.name }}</h2>
         <p>Age: {{ dog.age }}</p>
         <p>Breed: {{ dog.breed }}</p>
+        <p>Size: {{ dog.size }}</p>
         <div class="dog-image">
             {% if dog.image %}
                 <img src="{{ dog.image.url }}" style="width: 200px; height: 200px;">
@@ -28,6 +34,11 @@
         </div>
         <p>Shelter: {{ dog.shelter.name }}</p>
         <a href="{% url 'dog_details' pk=dog.pk %}">View Details</a>
+
+        {% if request.user.is_authenticated and request.user.role == 'shelter' and dog.shelter.user == request.user %}
+            <a href="{% url 'edit_post' dog.pk %}">Edit</a>
+            <a href="{% url 'delete_post' dog.pk %}">Delete Post</a>
+        {% endif %}
     </div>
     {% endfor %}
 </div>

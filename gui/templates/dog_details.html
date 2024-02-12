@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block content %}
+<button onclick="history.back();">Back</button>
 <div class="dog-details">
     <div class="dog-image">
         {% if dog.image %}
@@ -13,6 +14,7 @@
     <div class="dog-info">
         <h1>{{ dog.name }}</h1>
         <p><strong>Age:</strong> {{ dog.age }}</p>
+        <p><strong>Size:</strong> {{ dog.size }}</p>
         <p><strong>Gender:</strong> {{ dog.get_gender_display }}</p>
         <p><strong>Breed:</strong> {{ dog.breed }}</p>
         <p><strong>Description:</strong> {{ dog.description }}</p>

@@ -23,6 +23,7 @@ class UserRegistrationForm(forms.ModelForm):
                 try:
                     code_obj = RegistrationCode.objects.get(code=registration_code, username=username,
                                                             is_activated=False)
+                    code_obj.is_activated = True
                 except RegistrationCode.DoesNotExist:
                     self.add_error('registration_code',
                                    "Invalid registration code for this username or code already activated.")
@@ -44,10 +45,11 @@ def register(request):
         form = UserRegistrationForm()
     return render(request, 'registration/register.html', {'form': form})
 
+
 class DogAdoptionPostForm(forms.ModelForm):
     class Meta:
         model = DogAdoptionPost
-        fields = ['name', 'age', 'gender', 'breed', 'description', 'image']
+        fields = ['name', 'age', 'gender', 'breed', 'description', 'image', 'size']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'age': forms.NumberInput(attrs={'class': 'form-control'}),
@@ -55,7 +57,10 @@ class DogAdoptionPostForm(forms.ModelForm):
             'breed': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control'}),
             'image': forms.FileInput(attrs={'class': 'form-control'}),
+            'size': forms.Select(attrs={'class': 'form-control'})
         }
+
+
 class ShelterForm(forms.ModelForm):
     class Meta:
         model = Shelter
