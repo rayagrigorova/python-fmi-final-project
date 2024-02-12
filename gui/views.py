@@ -36,7 +36,6 @@ def register_and_login(request):
                         registration_code.is_activated = True
                         registration_code.save()
                     except RegistrationCode.DoesNotExist:
-                        reg_form.add_error('registration_code', 'Invalid or already activated registration code.')
                         return render(request, 'registration/register_and_login.html', {
                             'reg_form': reg_form,
                             'login_form': login_form

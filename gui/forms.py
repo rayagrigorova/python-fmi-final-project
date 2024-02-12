@@ -29,8 +29,6 @@ class UserRegistrationForm(forms.ModelForm):
                 try:
                     code_obj = RegistrationCode.objects.get(code=registration_code, username=username,
                                                             is_activated=False)
-                    code_obj.is_activated = True
-                    code_obj.save()
                 except RegistrationCode.DoesNotExist:
                     self.add_error('registration_code',
                                    "Invalid registration code for this username or code already activated.")

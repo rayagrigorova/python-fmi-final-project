@@ -6,7 +6,6 @@ from .models import CustomUser, RegistrationCode
 from django.contrib.auth import get_user_model
 
 
-# The following tests are related to the register_and_login url
 class UserRegistrationAndLoginTests(TestCase):
     def test_register_and_login_ordinary_user(self):
         url = reverse('register_and_login')
@@ -17,13 +16,6 @@ class UserRegistrationAndLoginTests(TestCase):
             'action': 'register'
         }, follow=True)
 
-        if not register_response.context['user'].is_authenticated:
-            print("ERROR: ", register_response.content)
-
-        # Check for registration form errors
-        if register_response.context.get('reg_form'):
-            print(register_response.context['reg_form'].errors)
-
         user_exists = get_user_model().objects.filter(username='ordinaryuser').exists()
         self.assertTrue(user_exists, "User registration failed")
 
@@ -33,7 +25,6 @@ class UserRegistrationAndLoginTests(TestCase):
             'action': 'login'
         }, follow=True)
 
-        # Check for login form errors
         if login_response.context.get('login_form'):
             print(login_response.context['login_form'].errors)
 
@@ -42,14 +33,16 @@ class UserRegistrationAndLoginTests(TestCase):
     def test_register_and_login_shelter_user(self):
         registration_code = RegistrationCode.objects.create(code='sheltercode123', username='shelteruser',
                                                             is_activated=False)
+        print(RegistrationCode.objects.all().values())
         url = reverse('register_and_login')
-        self.client.post(url, {
+        response = self.client.post(url, {
             'username': 'shelteruser',
             'password': 'testpassword123',
             'role': 'shelter',
             'registration_code': 'sheltercode123',
             'action': 'register'
         })
+
         user_exists = get_user_model().objects.filter(username='shelteruser').exists()
         code_activated = RegistrationCode.objects.get(code='sheltercode123').is_activated
         self.assertTrue(user_exists)
