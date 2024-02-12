@@ -6,4 +6,4 @@ class GuiConfig(AppConfig):
     name = 'gui'
 
     def ready(self):
-        pass
+        import gui.signals
