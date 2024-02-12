@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
@@ -5,6 +6,7 @@ from .forms import UserRegistrationForm
 from .models import CustomUser, RegistrationCode, DogAdoptionPost, Shelter
 from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 class UserRegistrationAndLoginTests(TestCase):
     def setUp(self):
@@ -427,3 +429,36 @@ class ShelterProfileEditTests(TestCase):
         self.assertRedirects(response, reverse('index'))
         self.assertEqual(self.shelter.name, 'new name')
 
+
+class FilterAndSortTest(TestCase):
+    @classmethod
+    def setUp(cls):
+        user1 = User.objects.create_user(username='user1', password='12345', role='shelter')
+        shelter1 = Shelter.objects.get(user=user1)
+
+        user2 = User.objects.create_user(username='user2', password='12345', role='shelter')
+        shelter2 = Shelter.objects.get(user=user2)
+
+        DogAdoptionPost.objects.create(name="Kucho", age=12, gender="male", breed="ima", size="L", shelter=shelter1)
+        DogAdoptionPost.objects.create(name="Sharko", age=9, gender="male", breed="nz", size="M", shelter=shelter2)
+        DogAdoptionPost.objects.create(name="ЦЕЗАР", age=5, gender="male", breed="nz", size="XL", shelter=shelter1)
+
+    def test_filter_by_shelter(self):
+        self.client.login(username='user1', password='12345')
+        response = self.client.get(reverse('index'), {'shelter': '1'})
+        self.assertContains(response, "Kucho")
+        self.assertContains(response, "ЦЕЗАР")
+        self.assertNotContains(response, "Sharko")
+
+    def test_filter_by_size(self):
+        self.client.login(username='user1', password='12345')
+        response = self.client.get(reverse('index'), {'size': 'M'})
+        self.assertContains(response, "Sharko")
+        self.assertNotContains(response, "ЦЕЗАР")
+        self.assertNotContains(response, "Kucho")
+
+    def test_sort_by_age(self):
+        self.client.login(username='user1', password='12345')
+        response = self.client.get(reverse('index'), {'sort_by': 'age'}, follow=True)
+        dogs = list(response.context['dogs'])
+        self.assertTrue(dogs[0].name == "ЦЕЗАР" and dogs[1].name == "Sharko" and dogs[2].name == "Kucho")
