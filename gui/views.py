@@ -33,14 +33,14 @@ def register_and_login(request):
                     registration_code_input = reg_form.cleaned_data.get('registration_code')
                     try:
                         registration_code = RegistrationCode.objects.get(code=registration_code_input, is_activated=False)
+                        registration_code.is_activated = True
+                        registration_code.save()
                     except RegistrationCode.DoesNotExist:
                         reg_form.add_error('registration_code', 'Invalid or already activated registration code.')
                         return render(request, 'registration/register_and_login.html', {
                             'reg_form': reg_form,
                             'login_form': login_form
                         })
-                    registration_code.is_activated = True
-                    registration_code.save()
 
                 user = reg_form.save(commit=False)
                 user.set_password(reg_form.cleaned_data['password'])

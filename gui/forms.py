@@ -15,8 +15,14 @@ class UserRegistrationForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         role = cleaned_data.get('role')
-        registration_code = cleaned_data.get('registration_code')
         username = cleaned_data.get('username')
+        registration_code = cleaned_data.get('registration_code')
+
+        if role == 'ordinary':
+            if 'registration_code' in self.errors:
+                del self.errors['registration_code']
+            if registration_code:
+                cleaned_data['registration_code'] = None
 
         if role == 'shelter':
             if registration_code:
@@ -24,6 +30,7 @@ class UserRegistrationForm(forms.ModelForm):
                     code_obj = RegistrationCode.objects.get(code=registration_code, username=username,
                                                             is_activated=False)
                     code_obj.is_activated = True
+                    code_obj.save()
                 except RegistrationCode.DoesNotExist:
                     self.add_error('registration_code',
                                    "Invalid registration code for this username or code already activated.")
