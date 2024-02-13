@@ -57,3 +57,7 @@ body {
   max-height: 200px;
 }
 
+.status-available { color: green; }
+.status-in-progress { color: yellow; }
+.status-completed { color: blue; }
+

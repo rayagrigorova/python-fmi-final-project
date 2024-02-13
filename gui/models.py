@@ -51,7 +51,7 @@ class DogAdoptionPost(models.Model):
         ('XS', 'Extra Small'),
         ('S', 'Small'),
         ('M', 'Medium'),
-        ('L', 'Big'),
+        ('L', 'Large'),
         ('XL', 'Extra Large'),
     ]
 

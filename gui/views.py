@@ -183,5 +183,5 @@ def delete_post(request, post_id):
 
 @login_required(login_url='/register-login')
 def archive_page(request):
-    archived_posts = DogAdoptionPost.objects.filter(adoption_stage='completed')
-    return render(request, 'archive_page.html', {'archived_posts': archived_posts})
+    archived_dogs = DogAdoptionPost.objects.filter(adoption_stage='completed')
+    return render(request, 'archive_page.html', {'archived_dogs': archived_dogs})

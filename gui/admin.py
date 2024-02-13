@@ -25,7 +25,7 @@ class ShelterAdmin(admin.ModelAdmin):
 
 class DogAdoptionPostAdmin(admin.ModelAdmin):
     ordering = ('name',)
-    list_display = ('name', 'age', 'gender', 'shelter')
+    list_display = ('name', 'age', 'gender', 'shelter', 'adoption_stage')
     search_fields = ('code', 'username')
 
 

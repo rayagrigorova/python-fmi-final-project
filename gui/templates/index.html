@@ -33,6 +33,21 @@
         <p>Age: {{ dog.age }}</p>
         <p>Breed: {{ dog.breed }}</p>
         <p>Size: {{ dog.size }}</p>
+        <p>Adoption status:
+            <span style="{% if dog.adoption_stage == 'active' %}color:limegreen;
+                         {% elif dog.adoption_stage == 'in_process' %}color:darkorange;
+                         {% elif dog.adoption_stage == 'completed' %}color:blue;{% endif %}">
+                {% if dog.adoption_stage == 'active' %}
+                    Available for Adoption
+                {% elif dog.adoption_stage == 'in_process' %}
+                    Adoption in Progress
+                {% elif dog.adoption_stage == 'completed' %}
+                    Adoption Completed
+                {% else %}
+                    Unknown Status
+                {% endif %}
+            </span>
+        </p>
         <div class="dog-image">
             {% if dog.image %}
                 <img src="{{ dog.image.url }}" style="width: 200px; height: 200px;">
