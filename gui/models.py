@@ -23,6 +23,9 @@ class RegistrationCode(models.Model):
 
 
 class Shelter(models.Model):
+    # Link the shelter model to the 'shelter' user type. related_name='shelter' is added so the shelter related to
+    # the user can be accessed with 'user.shelter'. limit_choices_to guarantees that the only type of users to be
+    # linked to a Shelter instance will be 'shelter' users.
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, related_name='shelter', limit_choices_to={'role': 'shelter'}, null=True)
     name = models.CharField(max_length=255)
     working_hours = models.TextField()

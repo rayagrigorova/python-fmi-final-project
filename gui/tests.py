@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
+
+# reverse() is used to generate URLs based on the name of a URL pattern from urls.py
 from django.urls import reverse
 
 from .forms import UserRegistrationForm
@@ -7,6 +9,7 @@ from .models import CustomUser, RegistrationCode, DogAdoptionPost, Shelter
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
+
 
 class UserRegistrationAndLoginTests(TestCase):
     def setUp(self):
@@ -231,6 +234,8 @@ class DogAdoptionPostCreateTests(TestCase):
             'size': 'XL',
             'shelter': self.shelter.id
         }, follow=True)
+        # A status code 200 means that the request succeeded and the page loaded successfully
+        # (in this case, the form is expected to be displayed with form errors)
         self.assertEqual(response.status_code, 200)
         self.assertIn("This field is required.", str(response.context['form']))
 
@@ -247,11 +252,11 @@ class DogAdoptionPostEditTests(TestCase):
                                                                   role='ordinary')
 
         self.post = DogAdoptionPost.objects.create(name="kuchence", age=1, gender="male", breed="ulichna prevuzhodna",
-                                                   description="mqu",
-                                                   shelter=Shelter.objects.get(user=self.shelter_user), size="XS")
+                                                   description="mqu", shelter=self.shelter, size="XS")
 
     def test_edit_post_as_creator_with_valid_changes(self):
         self.client.login(username='shelteruser', password='123456')
+        # kwargs={'pk': self.post.pk} will replace <int:pk> with self.post.pk
         post_edit_url = reverse('edit_post', kwargs={'pk': self.post.pk})
         response = self.client.post(post_edit_url, {
             'name': 'novo ime',
@@ -261,6 +266,7 @@ class DogAdoptionPostEditTests(TestCase):
             'description': 'malak pisan',
             'size': 'XL',
         }, follow=True)
+        # Reload the attributes of self.post from the database
         self.post.refresh_from_db()
         self.assertRedirects(response, reverse('index'))
         self.assertEqual(self.post.name, 'novo ime')
@@ -286,7 +292,7 @@ class DogAdoptionPostEditTests(TestCase):
         self.client.login(username='shelteruser', password='123456')
         post_edit_url = reverse('edit_post', kwargs={'pk': self.post.pk})
         response = self.client.post(post_edit_url, {
-            # 'age' field is left empty
+            # The 'age' field is left empty
             'name': 'novo ime',
             'gender': 'female',
             'breed': 'kotence',
@@ -368,8 +374,6 @@ class ShelterProfileEditTests(TestCase):
             'longitude': 4.5
         })
         self.shelter.refresh_from_db()
-        if response.status_code != 302:
-            print(response.context['form'].errors)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(self.shelter.name, 'new name')
         self.assertEqual(self.shelter.working_hours, '9-17')
@@ -411,6 +415,8 @@ class ShelterProfileEditTests(TestCase):
 
     def test_edit_without_login(self):
         response = self.client.get(self.edit_url, follow=True)
+        # The user is not logged in. He should be redirected to the register-login page
+        # next={self.edit_url} is a query that indicates where the user should be redirected after successful login
         expected_login_url = reverse('register_and_login') + f"?next={self.edit_url}"
         self.assertRedirects(response, expected_login_url)
 
@@ -432,7 +438,7 @@ class ShelterProfileEditTests(TestCase):
 
 class FilterAndSortTest(TestCase):
     @classmethod
-    def setUp(cls):
+    def setUpTestData(cls):
         cls.user1 = User.objects.create_user(username='user1', password='12345', role='shelter')
         cls.shelter1 = Shelter.objects.get(user=cls.user1)
 

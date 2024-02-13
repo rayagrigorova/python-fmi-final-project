@@ -29,7 +29,15 @@ def index(request):
         if form.cleaned_data['gender']:
             dogs = dogs.filter(gender=form.cleaned_data['gender'])
         if form.cleaned_data['sort_by']:
-            dogs = dogs.order_by(form.cleaned_data['sort_by'])
+            # If the sort criteria is size, then use a
+            # custom sorting function that assigns each size a number
+            if form.cleaned_data['sort_by'] == 'size':
+                # Convert QuerySet to a list
+                dogs = list(dogs)
+                size_order = {'XS': 1, 'S': 2, 'M': 3, 'L': 4, 'XL': 5}
+                dogs.sort(key=lambda x: size_order.get(x.size, 0))
+            else:
+                dogs = dogs.order_by(form.cleaned_data['sort_by'])
 
     return render(request, 'index.html', {'dogs': dogs, 'shelters': shelters, 'form': form})
 
@@ -41,10 +49,11 @@ def register_and_login(request):
     if request.method == 'POST':
         action = request.POST.get('action', '')
         if action == 'register':
+            # Create UserRegistrationForm instance with POST data from the request.
+            # The form is populated with the data submitted by the user.
             reg_form = UserRegistrationForm(request.POST)
             if reg_form.is_valid():
                 user_role = reg_form.cleaned_data.get('role')
-                registration_code = None
                 if user_role == 'shelter':
                     registration_code_input = reg_form.cleaned_data.get('registration_code')
                     try:
@@ -53,13 +62,17 @@ def register_and_login(request):
                         registration_code.is_activated = True
                         registration_code.save()
                     except RegistrationCode.DoesNotExist:
+                        # If the needed code doesn't exist, render the register_and_login form again
                         return render(request, 'registration/register_and_login.html', {
                             'reg_form': reg_form,
                             'login_form': login_form
                         })
 
+                # Create a new instance of the model associated with the form (in this case, CustomUser)
+                # commit=False means 'don't save to the database yet'
                 user = reg_form.save(commit=False)
                 user.set_password(reg_form.cleaned_data['password'])
+                # Save the modified user instance to the database
                 user.save()
 
                 return redirect(reverse('login'))
@@ -78,6 +91,7 @@ def register_and_login(request):
     })
 
 
+# Django's DetailView is used to display a details page for an object from the database
 class DogDetailView(DetailView):
     model = DogAdoptionPost
     template_name = 'dog_details.html'
@@ -89,6 +103,7 @@ class ShelterDetailView(DetailView):
     template_name = 'shelter_details.html'
     context_object_name = 'shelter'
 
+    # get_context_data is used to pass additional data to the template
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         shelter = self.get_object()
@@ -119,25 +134,40 @@ def create_post(request):
 
 @login_required(login_url='/register-login')
 def edit_shelter(request, pk):
+    #  Try to find a Shelter object that matches the provided primary key
+    #  and belongs to the currently logged-in user
     shelter = get_object_or_404(Shelter, pk=pk, user=request.user)
     if request.method == 'POST':
+        # A ShelterForm instance is created and populated
+        # with data from the request and the shelter instance to be edited
         form = ShelterForm(request.POST, instance=shelter)
         if form.is_valid():
             form.save()
             return redirect('index')
     else:
+        # A GET request: (the form is being accessed for the first time)
+        # populate it with the shelter's existing details
         form = ShelterForm(instance=shelter)
     return render(request, 'edit_shelter.html', {'form': form})
 
 
 class EditDogPostView(UpdateView):
-    model = DogAdoptionPost
+    model = DogAdoptionPost  # specify the model to be updated
     form_class = DogAdoptionPostForm
     template_name = 'edit_dog_post.html'
+    # specify the URL to redirect; reverse_lazy() is used so that
+    # the URL is not loaded before the app is ready
     success_url = reverse_lazy('index')
 
+
     def get_queryset(self):
+        """
+        Customize the queryset to ensure users can
+        only edit their own posts by filtering DogAdoptionPost objects.
+        """
         qs = super().get_queryset()
+        # 'shelter' is the FK for the post, '__' navigates through model fields' relationships
+        # 'user' is a field in the Shelter model
         return qs.filter(shelter__user=self.request.user)
 
 

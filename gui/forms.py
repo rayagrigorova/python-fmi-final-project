@@ -8,29 +8,26 @@ from .models import RegistrationCode, DogAdoptionPost, Shelter
 
 
 class UserRegistrationForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    password = forms.CharField(widget=forms.PasswordInput())
 
     class Meta:
+        # This form will use the custom user model defined in models.py
         model = get_user_model()
         fields = ['username', 'password', 'role', 'registration_code']
 
+    # Provide custom validation for this form by overriding the clean() method.
     def clean(self):
+        # Call the parent method to ensure basic validation logic
         cleaned_data = super().clean()
         role = cleaned_data.get('role')
         username = cleaned_data.get('username')
         registration_code = cleaned_data.get('registration_code')
 
-        if role == 'ordinary':
-            if 'registration_code' in self.errors:
-                del self.errors['registration_code']
-            if registration_code:
-                cleaned_data['registration_code'] = None
-
         if role == 'shelter':
             if registration_code:
                 try:
-                    code_obj = RegistrationCode.objects.get(code=registration_code, username=username,
-                                                            is_activated=False)
+                    RegistrationCode.objects.get(code=registration_code, username=username,
+                                                 is_activated=False)
                 except RegistrationCode.DoesNotExist:
                     self.add_error('registration_code',
                                    "Invalid registration code for this username or code already activated.")
@@ -44,15 +41,6 @@ class DogAdoptionPostForm(forms.ModelForm):
     class Meta:
         model = DogAdoptionPost
         fields = ['name', 'age', 'gender', 'breed', 'description', 'image', 'size']
-        widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'age': forms.NumberInput(attrs={'class': 'form-control'}),
-            'gender': forms.Select(attrs={'class': 'form-control'}),
-            'breed': forms.TextInput(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(attrs={'class': 'form-control'}),
-            'image': forms.FileInput(attrs={'class': 'form-control'}),
-            'size': forms.Select(attrs={'class': 'form-control'})
-        }
 
 
 class ShelterForm(forms.ModelForm):
@@ -60,23 +48,21 @@ class ShelterForm(forms.ModelForm):
         model = Shelter
         fields = ['name', 'working_hours', 'phone', 'address', 'latitude', 'longitude']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'working_hours': forms.Textarea(attrs={'class': 'form-control'}),
-            'phone': forms.TextInput(attrs={'class': 'form-control'}),
-            'address': forms.Textarea(attrs={'class': 'form-control'}),
-            'latitude': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.0000001'}),
-            'longitude': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.0000001'}),
+            'latitude': forms.NumberInput(attrs={'step': '0.0000001'}),
+            'longitude': forms.NumberInput(attrs={'step': '0.0000001'}),
         }
 
 
 class SortFilterForm(forms.Form):
     shelter = forms.ModelChoiceField(queryset=Shelter.objects.all(), required=False, empty_label="All Shelters")
     size = forms.ChoiceField(choices=[('', 'All')] + DogAdoptionPost.SIZE_CHOICES, required=False)
-    breed = forms.ChoiceField(choices=[], required=False)
+    breed = forms.ChoiceField(choices=[], required=False)  # The choices for this field will be initialized in __init__
     gender = forms.ChoiceField(choices=[('', 'All'), ('male', 'Male'), ('female', 'Female')], required=False)
     sort_by = forms.ChoiceField(choices=[('name', 'Name'), ('age', 'Age'), ('size', 'Size')], required=False)
 
     def __init__(self, *args, **kwargs):
         super(SortFilterForm, self).__init__(*args, **kwargs)
+        # Get the unique breeds from dog adoption posts (flat=True is used so the data is not returned as
+        # tuples of only one element like so: [('breed1',)...('breedN',)])
         unique_breeds = DogAdoptionPost.objects.values_list('breed', flat=True).distinct()
         self.fields['breed'].choices = [('', 'All')] + [(breed, breed) for breed in unique_breeds if breed]

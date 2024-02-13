@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block content %}
+    <h1>Welcome, {{ request.user.username }}</h1>
     <form action="{% url 'logout' %}" method="post">
         {% csrf_token %}
         <button type="submit" class="float-right">Logout</button>
@@ -9,7 +10,7 @@
 
     <form method="get" action="">
         {{ form.as_p }}
-        <button type="submit">Filter</button>
+        <button type="submit">Apply</button>
     </form>
 
 {% if request.user.role == 'shelter' %}
@@ -34,7 +35,7 @@
             {% if dog.image %}
                 <img src="{{ dog.image.url }}" style="width: 200px; height: 200px;">
             {% else %}
-                <img src="{% static 'dog_silhouette.jpg' %}" alt="Default Image" style="width: 200px; height: 200px;">
+                <img src="{% static 'dog_silhouette.jpg' %}" style="width: 200px; height: 200px;">
             {% endif %}
         </div>
         <p>Shelter: {{ dog.shelter.name }}</p>
