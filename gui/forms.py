@@ -40,7 +40,7 @@ class UserRegistrationForm(forms.ModelForm):
 class DogAdoptionPostForm(forms.ModelForm):
     class Meta:
         model = DogAdoptionPost
-        fields = ['name', 'age', 'gender', 'breed', 'description', 'image', 'size']
+        fields = ['name', 'age', 'gender', 'breed', 'description', 'image', 'size', 'adoption_stage']
 
 
 class ShelterForm(forms.ModelForm):

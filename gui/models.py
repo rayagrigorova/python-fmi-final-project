@@ -55,6 +55,12 @@ class DogAdoptionPost(models.Model):
         ('XL', 'Extra Large'),
     ]
 
+    ADOPTION_STAGE_CHOICES = [
+        ('active', 'Active'),
+        ('in_process', 'In Process'),
+        ('completed', 'Completed'),
+    ]
+
     name = models.CharField(max_length=255)
     age = models.PositiveIntegerField()
     gender = models.CharField(max_length=6, choices=GENDER_CHOICES)
@@ -63,6 +69,7 @@ class DogAdoptionPost(models.Model):
     shelter = models.ForeignKey(Shelter, on_delete=models.CASCADE, null=True)
     image = models.ImageField(upload_to='dogs/', blank=True, null=True)
     size = models.CharField(max_length=2, choices=SIZE_CHOICES, default='M')
+    adoption_stage = models.CharField(max_length=20, choices=ADOPTION_STAGE_CHOICES, default='active')
 
     def __str__(self):
         return self.name

@@ -14,7 +14,7 @@ from django.contrib import messages
 
 @login_required(login_url='/register-login')
 def index(request):
-    dogs = DogAdoptionPost.objects.all()
+    dogs = DogAdoptionPost.objects.filter(adoption_stage__in=['active', 'in_process'])
     shelters = Shelter.objects.all()
 
     form = SortFilterForm(request.GET)
@@ -159,7 +159,6 @@ class EditDogPostView(UpdateView):
     # the URL is not loaded before the app is ready
     success_url = reverse_lazy('index')
 
-
     def get_queryset(self):
         """
         Customize the queryset to ensure users can
@@ -180,3 +179,9 @@ def delete_post(request, post_id):
 
     post.delete()
     return redirect('index')
+
+
+@login_required(login_url='/register-login')
+def archive_page(request):
+    archived_posts = DogAdoptionPost.objects.filter(adoption_stage='completed')
+    return render(request, 'archive_page.html', {'archived_posts': archived_posts})
