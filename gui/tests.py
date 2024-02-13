@@ -445,8 +445,8 @@ class FilterAndSortTest(TestCase):
         cls.user2 = User.objects.create_user(username='user2', password='12345', role='shelter')
         cls.shelter2 = Shelter.objects.get(user=cls.user2)
 
-        DogAdoptionPost.objects.create(name="Kucho", age=12, gender="male", breed="ima", size="L", shelter=cls.shelter1)
         DogAdoptionPost.objects.create(name="Sharko", age=9, gender="male", breed="nz", size="M", shelter=cls.shelter2)
+        DogAdoptionPost.objects.create(name="Kucho", age=12, gender="male", breed="ima", size="L", shelter=cls.shelter1)
         DogAdoptionPost.objects.create(name="ЦЕЗАР", age=5, gender="male", breed="nz", size="XL", shelter=cls.shelter1)
 
     def test_filter_by_shelter(self):
@@ -486,8 +486,19 @@ class FilterAndSortTest(TestCase):
     def test_breed_option_added_after_post_update(self):
         """Add a post and check if the respective dog breed is added to the filter form"""
         self.client.login(username='user1', password='12345')
-        new_post = DogAdoptionPost.objects.create(name="sdsdsd", age=134, gender="female",
+        DogAdoptionPost.objects.create(name="sdsdsd", age=134, gender="female",
                                                   breed="nova poroda", size="XL", shelter=self.shelter1)
         response = self.client.get(reverse('index'))
         form = response.context['form']
         self.assertIn('nova poroda', [choice[1] for choice in form.fields['breed'].choices])
+
+    def test_sort_by_size(self):
+        self.client.login(username='user1', password='12345')
+        DogAdoptionPost.objects.create(name="Фики", age=13, gender="male",
+                                       breed="yesyesyes", size="XS", shelter=self.shelter1)
+        DogAdoptionPost.objects.create(name="Азис", age=1, gender="male",
+                                       breed="aleilieieie", size="S", shelter=self.shelter1)
+        response = self.client.get(reverse('index'), {'sort_by': 'size'}, follow=True)
+        dogs = list(response.context['dogs'])
+        self.assertTrue(dogs[0].name == "Фики" and dogs[1].name == "Азис" and dogs[2].name == "Sharko"
+                        and dogs[3].name == "Kucho" and dogs[4].name == "ЦЕЗАР")
