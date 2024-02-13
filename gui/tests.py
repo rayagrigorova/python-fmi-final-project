@@ -198,7 +198,8 @@ class DogAdoptionPostCreateTests(TestCase):
             'breed': 'nqma',
             'description': 'bez komentar',
             'size': 'XL',
-            'shelter': self.shelter.id
+            'shelter': self.shelter.id,
+            'adoption_stage': 'active'
         }, follow=True)
 
         self.assertEqual(DogAdoptionPost.objects.count(), 1)
@@ -265,6 +266,7 @@ class DogAdoptionPostEditTests(TestCase):
             'breed': 'kotence',
             'description': 'malak pisan',
             'size': 'XL',
+            'adoption_stage': 'active'
         }, follow=True)
         # Reload the attributes of self.post from the database
         self.post.refresh_from_db()
@@ -502,3 +504,111 @@ class FilterAndSortTest(TestCase):
         dogs = list(response.context['dogs'])
         self.assertTrue(dogs[0].name == "Фики" and dogs[1].name == "Азис" and dogs[2].name == "Sharko"
                         and dogs[3].name == "Kucho" and dogs[4].name == "ЦЕЗАР")
+
+
+class AdoptionStatusTests(TestCase):
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username='shelter', password='123456', role='shelter')
+        self.shelter = Shelter.objects.get(user=self.user)
+
+        self.completed_post = DogAdoptionPost.objects.create(
+            name="completed",
+            age=5,
+            gender="male",
+            breed="dsdfsdfs",
+            description="sdfdfsfaef",
+            shelter=self.shelter,
+            size="M",
+            adoption_stage='completed'
+        )
+
+        self.active_post = DogAdoptionPost.objects.create(
+            name="active",
+            age=3,
+            gender="female",
+            breed="wrweewr",
+            description="hjkghk",
+            shelter=self.shelter,
+            size="XS",
+            adoption_stage='active'
+        )
+
+        self.client.login(username='shelter', password='123456')
+
+    def test_edit_post_status_to_completed(self):
+        """Set a status of a post from active to completed"""
+        self.client.post(reverse('edit_post', args=[self.active_post.pk]), {
+            'name': self.active_post.name,
+            'age': self.active_post.age,
+            'gender': self.active_post.gender,
+            'breed': self.active_post.breed,
+            'description': self.active_post.description,
+            'shelter': self.active_post.shelter.id,
+            'size': self.active_post.size,
+            'adoption_stage': 'completed'
+        }, follow=True)
+        self.active_post.refresh_from_db()
+
+        response = self.client.get(reverse('archive_page'))
+        self.assertContains(response, self.active_post.name)
+        response = self.client.get(reverse('index'))
+        self.assertNotContains(response, self.completed_post.name)
+
+    def test_edit_post_status_to_active(self):
+        """Set a status of a post from completed to active"""
+        self.client.post(reverse('edit_post', args=[self.completed_post.pk]), {
+            'name': self.completed_post.name,
+            'age': self.completed_post.age,
+            'gender': self.completed_post.gender,
+            'breed': self.completed_post.breed,
+            'description': self.completed_post.description,
+            'shelter': self.completed_post.shelter.id,
+            'size': self.completed_post.size,
+            'adoption_stage': 'active'
+        }, follow=True)
+        self.completed_post.refresh_from_db()
+
+        response = self.client.get(reverse('index'))
+        self.assertContains(response, self.completed_post.name)
+        response = self.client.get(reverse('archive_page'))
+        self.assertNotContains(response, self.completed_post.name)
+
+
+    def test_completed_stay_on_same_page(self):
+        """Set a status of a post from completed back to completed"""
+        self.client.post(reverse('edit_post', args=[self.completed_post.pk]), {
+            'name': self.completed_post.name,
+            'age': self.completed_post.age,
+            'gender': self.completed_post.gender,
+            'breed': self.completed_post.breed,
+            'description': self.completed_post.description,
+            'shelter': self.completed_post.shelter.id,
+            'size': self.completed_post.size,
+            'adoption_stage': 'completed'
+        }, follow=True)
+        self.completed_post.refresh_from_db()
+
+        response = self.client.get(reverse('index'))
+        self.assertNotContains(response, self.completed_post.name)
+        response = self.client.get(reverse('archive_page'))
+        self.assertContains(response, self.completed_post.name)
+
+    def test_moving_post_from_archive_to_index(self):
+        """Set a status of a post from active back to active"""
+        self.client.post(reverse('edit_post', args=[self.active_post.pk]), {
+            'name': self.active_post.name,
+            'age': self.active_post.age,
+            'gender': self.active_post.gender,
+            'breed': self.active_post.breed,
+            'description': self.active_post.description,
+            'shelter': self.active_post.shelter.id,
+            'size': self.active_post.size,
+            'adoption_stage': 'active'
+        }, follow=True)
+        self.active_post.refresh_from_db()
+
+        response = self.client.get(reverse('index'))
+        self.assertContains(response, self.active_post.name)
+        response = self.client.get(reverse('archive_page'))
+        self.assertNotContains(response, self.active_post.name)
