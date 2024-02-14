@@ -3,7 +3,7 @@
 
 {% block content %}
     <h1>Welcome, {{ request.user.username }}</h1>
-    <button onclick="history.back();">Back</button>
+    <button onclick="window.location='{% url 'index' %}';">Back</button>
     <form action="{% url 'logout' %}" method="post">
         {% csrf_token %}
         <button type="submit" class="float-right">Logout</button>

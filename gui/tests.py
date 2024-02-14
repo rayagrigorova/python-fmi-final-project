@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from .forms import UserRegistrationForm
-from .models import CustomUser, RegistrationCode, DogAdoptionPost, Shelter
+from .models import CustomUser, RegistrationCode, DogAdoptionPost, Shelter, Comment
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -489,7 +489,7 @@ class FilterAndSortTest(TestCase):
         """Add a post and check if the respective dog breed is added to the filter form"""
         self.client.login(username='user1', password='12345')
         DogAdoptionPost.objects.create(name="sdsdsd", age=134, gender="female",
-                                                  breed="nova poroda", size="XL", shelter=self.shelter1)
+                                       breed="nova poroda", size="XL", shelter=self.shelter1)
         response = self.client.get(reverse('index'))
         form = response.context['form']
         self.assertIn('nova poroda', [choice[1] for choice in form.fields['breed'].choices])
@@ -574,7 +574,6 @@ class AdoptionStatusTests(TestCase):
         response = self.client.get(reverse('archive_page'))
         self.assertNotContains(response, self.completed_post.name)
 
-
     def test_completed_stay_on_same_page(self):
         """Set a status of a post from completed back to completed"""
         self.client.post(reverse('edit_post', args=[self.completed_post.pk]), {
@@ -612,3 +611,32 @@ class AdoptionStatusTests(TestCase):
         self.assertContains(response, self.active_post.name)
         response = self.client.get(reverse('archive_page'))
         self.assertNotContains(response, self.active_post.name)
+
+
+class CommentCRUDTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username='user', password='123456')
+        self.shelter_user = get_user_model().objects.create_user(username='shelter', password='123456', role='shelter')
+        self.shelter = Shelter.objects.get(user=self.shelter_user)
+        self.dog_post = DogAdoptionPost.objects.create(name='kucho', age=1, gender='male', breed='chihlala',
+                                                       shelter=self.shelter, description='pluh', size='XL')
+        self.client.login(username='user', password='123456')
+
+    def test_create_comment(self):
+        response = self.client.post(reverse('add_comment_to_post', args=[self.dog_post.pk]),
+                                    {'content': 'mi6ka'})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Comment.objects.count(), 1)
+        self.assertEqual(Comment.objects.first().content, 'mi6ka')
+
+    def test_edit_comment(self):
+        comment = Comment.objects.create(post=self.dog_post, author=self.user, content='sadarjanie')
+        self.client.post(reverse('edit_comment', args=[self.dog_post.pk, comment.pk]), {'content': 'novo sadarjanie'})
+        comment.refresh_from_db()
+        self.assertEqual(comment.content, 'novo sadarjanie')
+
+    def test_delete_comment(self):
+        comment = Comment.objects.create(post=self.dog_post, author=self.user, content='za mahane')
+        response = self.client.post(reverse('delete_comment', args=[self.dog_post.pk, comment.pk]))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Comment.objects.count(), 0)

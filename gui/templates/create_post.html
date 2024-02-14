@@ -3,7 +3,7 @@
 {% block content %}
   <div class="container">
     <h2>Create Dog Adoption Post</h2>
-    <button onclick="history.back();">Back</button>
+    <button onclick="window.location='{% url 'index' %}';">Back</button>
     <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
       {{ form.as_p }}

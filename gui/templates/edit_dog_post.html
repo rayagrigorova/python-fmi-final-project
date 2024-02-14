@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <button onclick="history.back();">Back</button>
+    <button onclick="window.location='{% url 'index' %}';">Back</button>
     <h2>Edit Dog Post</h2>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
