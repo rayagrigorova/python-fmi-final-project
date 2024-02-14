@@ -14,8 +14,8 @@ body {
 }
 
 #dog-content {
-    width: 80vw;
-    max-width: 100%;
+    width: 90vw;
+    max-width: 80%;
     margin: 0 auto;
     padding: 20px;
     background-color: #EFEFEF;
@@ -46,17 +46,31 @@ body {
   border-radius: 10px;
   padding: 10px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  display: flex;
-  flex-direction: column;
   align-items: center;
 }
 
 .dog-image {
   width: 100%;
-  height: auto;
-  object-fit: cover;
+  height: 100%;
   border-radius: 10px;
   max-width: 200px;
   max-height: 200px;
+}
+
+.status-available { color: green; }
+.status-in-progress { color: yellow; }
+.status-completed { color: blue; }
+
+.comment {
+  background-color: red;
+  border: 1px solid green;
+  border-radius: 8px;
+  margin-bottom: 10px; /* Add space between comments */
+}
+
+.comment .author {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: block;
 }
 

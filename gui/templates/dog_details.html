@@ -5,38 +5,47 @@
 <button onclick="history.back();">Back</button>
 
 <div class="dog-details">
-    <div class="dog-image">
-        {% if dog.image %}
-            <img src="{{ dog.image.url }}" style="width: 200px; height: 200px;">
-        {% else %}
-            <img src="{% static 'dog_silhouette.jpg' %}" style="width: 200px; height: 200px;">
-        {% endif %}
-    </div>
-    <div class="dog-info">
+    <div class="left-side">
+        <div class="dog-image">
+            {% if dog.image %}
+                <img src="{{ dog.image.url }}" style="width: 200px; height: 200px;">
+            {% else %}
+                <img src="{% static 'dog_silhouette.jpg' %}" style="width: 200px; height: 200px;">
+            {% endif %}
+        </div>
+
         <h1>{{ dog.name }}</h1>
         <p><strong>Age:</strong> {{ dog.age }}</p>
         <p><strong>Size:</strong> {{ dog.size }}</p>
         <p><strong>Gender:</strong> {{ dog.get_gender_display }}</p>
         <p><strong>Breed:</strong> {{ dog.breed }}</p>
-        <p><strong>Description:</strong> {{ dog.description }}</p>
         <p><strong>Shelter:</strong> {{ dog.shelter.name }}</p>
         <a href="{% url 'shelter_details' dog.shelter.pk %}">Visit Shelter Page</a>
     </div>
+
+    <div class="right-side">
+        <div class="dog-description">
+            <p><strong>Description:</strong></p>
+            <p>{{ dog.description }}</p>
+        </div>
+    </div>
 </div>
 
-    <div>
-        {% for comment in comments %}
-            <div class="comment">
-                <span class="author">{{ comment.author }}</span>
-                <p class="content">{{ comment.content }}</p>
-            </div>
-        {% endfor %}
-    </div>
+<div class="comment-section">
+    {% for comment in comments %}
+        <div class="comment">
+            <div class="author">{{ comment.author }}</div>
+            <p>{{ comment.content }}</p>
+        </div>
+    {% endfor %}
+
 
     <form action="{% url 'add_comment_to_post' dog.pk %}" method="post">
         {% csrf_token %}
         {{ comment_form.as_p }}
         <button type="submit">Add Comment</button>
     </form>
+</div>
+
 {% endblock %}
 
