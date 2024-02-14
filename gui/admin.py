@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CustomUser
+from .models import CustomUser, Comment
 from .models import RegistrationCode
 from .models import Shelter
 from .models import DogAdoptionPost
@@ -29,7 +29,24 @@ class DogAdoptionPostAdmin(admin.ModelAdmin):
     search_fields = ('code', 'username')
 
 
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('display_author', 'display_post', 'content',)
+
+    # 'obj' is an object of type 'Comment' - the 'obj' parameter refers to the object managed by the admin interface
+    def display_author(self, obj):
+        return obj.author.username
+
+    # Determine the text description that will appear for the column
+    display_author.short_description = 'Author'
+
+    def display_post(self, obj):
+        return obj.post.name
+
+    display_post.short_description = 'Post'
+
+
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(RegistrationCode, RegistrationCodeAdmin)
 admin.site.register(Shelter, ShelterAdmin)
 admin.site.register(DogAdoptionPost, DogAdoptionPostAdmin)
+admin.site.register(Comment, CommentAdmin)
