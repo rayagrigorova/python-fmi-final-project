@@ -640,3 +640,18 @@ class CommentCRUDTests(TestCase):
         response = self.client.post(reverse('delete_comment', args=[self.dog_post.pk, comment.pk]))
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Comment.objects.count(), 0)
+
+    def test_edit_comment_not_author(self):
+        comment = Comment.objects.create(post=self.dog_post, author=self.user, content='fjsdfkdsdjkkfsffsfsf')
+        get_user_model().objects.create_user(username='user2', password='123456')
+        self.client.login(username='user2', password='123456')
+        self.client.post(reverse('edit_comment', args=[self.dog_post.pk, comment.pk]), {'content': '12312313'})
+        comment.refresh_from_db()
+        self.assertNotEqual(comment.content, '12312313')
+
+    def test_delete_not_author(self):
+        comment = Comment.objects.create(post=self.dog_post, author=self.user, content='drtre132424')
+        get_user_model().objects.create_user(username='user2', password='123456')
+        self.client.login(username='user2', password='123456')
+        self.client.post(reverse('delete_comment', args=[self.dog_post.pk, comment.pk]))
+        self.assertTrue(Comment.objects.filter(pk=comment.pk).exists())
