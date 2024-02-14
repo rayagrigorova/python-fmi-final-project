@@ -36,6 +36,10 @@
         <div class="comment">
             <div class="author">{{ comment.author }}</div>
             <p>{{ comment.content }}</p>
+            {% if request.user == comment.author %}
+                <a href="{% url 'edit_comment' post_pk=dog_post.pk comment_pk=comment.pk %}">Edit</a>
+                <a href="{% url 'delete_comment' post_pk=dog_post.pk comment_pk=comment.pk %}">Delete</a>
+            {% endif %}
         </div>
     {% endfor %}
 

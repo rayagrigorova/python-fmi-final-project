@@ -102,6 +102,7 @@ class DogDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         context['comments'] = Comment.objects.filter(post=self.object)
         context['comment_form'] = CommentForm()
+        context['dog_post'] = self.object
         return context
 
 
@@ -207,3 +208,23 @@ def create_comment(request, pk):
             comment.author = request.user
             comment.save()
     return redirect('dog_details', pk=dog_post.pk)
+
+
+@login_required(login_url='/register-login')
+def edit_comment(request, post_pk, comment_pk):
+    comment = get_object_or_404(Comment, pk=comment_pk, author=request.user, post_id=post_pk)
+    if request.method == "POST":
+        form = CommentForm(request.POST, instance=comment)
+        if form.is_valid():
+            form.save()
+            return redirect('dog_details', pk=post_pk)
+    else:
+        form = CommentForm(instance=comment)
+    return render(request, 'edit_comment.html', {'form': form})
+
+
+@login_required(login_url='/register-login')
+def delete_comment(request, post_pk, comment_pk):
+    comment = get_object_or_404(Comment, pk=comment_pk, author=request.user, post_id=post_pk)
+    comment.delete()
+    return redirect('dog_details', pk=post_pk)

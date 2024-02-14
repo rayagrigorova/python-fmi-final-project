@@ -18,5 +18,6 @@ urlpatterns = [
     path('delete-post/<int:post_id>/', delete_post, name='delete_post'),
     path('archive/', archive_page, name='archive_page'),
     path('dogs/<int:pk>/comment/', create_comment, name='add_comment_to_post'),
-
+    path('dogs/<int:post_pk>/comments/<int:comment_pk>/edit/', views.edit_comment, name='edit_comment'),
+    path('dogs/<int:post_pk>/comments/<int:comment_pk>/delete/', views.delete_comment, name='delete_comment')
 ]
