@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User
 from django.test import TestCase
 
 # reverse() is used to generate URLs based on the name of a URL pattern from urls.py
@@ -7,8 +6,6 @@ from django.urls import reverse
 from .forms import UserRegistrationForm
 from .models import CustomUser, RegistrationCode, DogAdoptionPost, Shelter, Comment
 from django.contrib.auth import get_user_model
-
-User = get_user_model()
 
 
 class UserRegistrationAndLoginTests(TestCase):
@@ -441,10 +438,10 @@ class ShelterProfileEditTests(TestCase):
 class FilterAndSortTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user1 = User.objects.create_user(username='user1', password='12345', role='shelter')
+        cls.user1 = get_user_model().objects.create_user(username='user1', password='12345', role='shelter')
         cls.shelter1 = Shelter.objects.get(user=cls.user1)
 
-        cls.user2 = User.objects.create_user(username='user2', password='12345', role='shelter')
+        cls.user2 = get_user_model().objects.create_user(username='user2', password='12345', role='shelter')
         cls.shelter2 = Shelter.objects.get(user=cls.user2)
 
         DogAdoptionPost.objects.create(name="Sharko", age=9, gender="male", breed="nz", size="M", shelter=cls.shelter2)

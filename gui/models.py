@@ -10,7 +10,7 @@ class CustomUser(AbstractUser):
         ('shelter', 'Shelter'),
     )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='ordinary')
-    registration_code = models.CharField(max_length=100,  blank=True, null=True)
+    registration_code = models.CharField(max_length=100, blank=True, null=True)
 
 
 class RegistrationCode(models.Model):
@@ -26,7 +26,8 @@ class Shelter(models.Model):
     # Link the shelter model to the 'shelter' user type. related_name='shelter' is added so the shelter related to
     # the user can be accessed with 'user.shelter'. limit_choices_to guarantees that the only type of users to be
     # linked to a Shelter instance will be 'shelter' users.
-    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, related_name='shelter', limit_choices_to={'role': 'shelter'}, null=True)
+    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, related_name='shelter',
+                                limit_choices_to={'role': 'shelter'}, null=True)
     name = models.CharField(max_length=255)
     working_hours = models.TextField()
     phone = models.CharField(max_length=20)
@@ -85,3 +86,15 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.content
+
+
+class PostSubscription(models.Model):
+    """ Allow users to follow posts that have a status of "in progress"
+    and receive a notification when the status changes to 'active' """
+
+    # 'related_name' specifies the name of the reverse relation from a related model
+    # (by default it would be postsubscription_set).
+    # 'related_name' makes it possible to access all subscriptions of a user (using user.subscriptions.all())
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='subscriptions')
+    post = models.ForeignKey(DogAdoptionPost, on_delete=models.CASCADE, related_name='subscribers')
+    is_active = models.BooleanField(default=True)

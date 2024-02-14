@@ -7,7 +7,7 @@ from django.views.generic import DetailView, UpdateView
 
 from .forms import UserRegistrationForm, DogAdoptionPostForm, ShelterForm, SortFilterForm, CommentForm
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import RegistrationCode, Shelter, DogAdoptionPost, Comment
+from .models import RegistrationCode, Shelter, DogAdoptionPost, Comment, PostSubscription
 
 import folium
 from django.contrib import messages
@@ -228,3 +228,21 @@ def delete_comment(request, post_pk, comment_pk):
     comment = get_object_or_404(Comment, pk=comment_pk, author=request.user, post_id=post_pk)
     comment.delete()
     return redirect('dog_details', pk=post_pk)
+
+
+@login_required(login_url='/register-login')
+def subscribe_to_post(request, post_id):
+    post = get_object_or_404(DogAdoptionPost, id=post_id)
+    try:
+        PostSubscription.objects.get(user=request.user)
+    except PostSubscription.DoesNotExist:
+        PostSubscription.objects.create(user=request, post=post)
+    return redirect('index', pk=post_id)
+
+
+@login_required(login_url='/register-login')
+def unsubscribe_from_post(request, post_id):
+    post = get_object_or_404(DogAdoptionPost, id=post_id)
+    subscription_to_remove = PostSubscription.objects.filter(user=request.user, post=post)
+    subscription_to_remove.delete()
+    return redirect('index', pk=post_id)
