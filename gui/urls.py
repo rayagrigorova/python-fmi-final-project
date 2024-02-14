@@ -3,7 +3,7 @@ from django.contrib.auth import views as auth_views
 
 from . import views
 from .views import register_and_login, DogDetailView, ShelterDetailView, create_post, edit_shelter, EditDogPostView, \
-    delete_post, archive_page
+    delete_post, archive_page, create_comment
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -16,5 +16,7 @@ urlpatterns = [
     path('shelter/edit/<int:pk>/', edit_shelter, name='edit_shelter'),
     path('dogs/edit/<int:pk>/', EditDogPostView.as_view(), name='edit_post'),
     path('delete-post/<int:post_id>/', delete_post, name='delete_post'),
-    path('archive/', archive_page, name='archive_page')
+    path('archive/', archive_page, name='archive_page'),
+    path('dogs/<int:pk>/comment/', create_comment, name='add_comment_to_post'),
+
 ]

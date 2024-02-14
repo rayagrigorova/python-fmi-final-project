@@ -2,11 +2,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.urls import reverse, reverse_lazy
+from django.views import View
 from django.views.generic import DetailView, UpdateView
 
-from .forms import UserRegistrationForm, DogAdoptionPostForm, ShelterForm, SortFilterForm
+from .forms import UserRegistrationForm, DogAdoptionPostForm, ShelterForm, SortFilterForm, CommentForm
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import RegistrationCode, Shelter, DogAdoptionPost
+from .models import RegistrationCode, Shelter, DogAdoptionPost, Comment
 
 import folium
 from django.contrib import messages
@@ -97,6 +98,12 @@ class DogDetailView(DetailView):
     template_name = 'dog_details.html'
     context_object_name = 'dog'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['comments'] = Comment.objects.filter(post=self.object)
+        context['comment_form'] = CommentForm()
+        return context
+
 
 class ShelterDetailView(DetailView):
     model = Shelter
@@ -185,3 +192,18 @@ def delete_post(request, post_id):
 def archive_page(request):
     archived_dogs = DogAdoptionPost.objects.filter(adoption_stage='completed')
     return render(request, 'archive_page.html', {'archived_dogs': archived_dogs})
+
+
+# 'pk' is used to identify the post the comment is associated with
+def create_comment(request, pk):
+    dog_post = get_object_or_404(DogAdoptionPost, pk=pk)
+    if request.method == "POST":
+        # Create an instance of the form and populate it with the data from the request
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            # Save form data to comment , but don't commit yet
+            comment = form.save(commit=False)
+            comment.post = dog_post
+            comment.author = request.user
+            comment.save()
+    return redirect('dog_details', pk=dog_post.pk)

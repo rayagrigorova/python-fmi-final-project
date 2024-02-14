@@ -76,3 +76,12 @@ class DogAdoptionPost(models.Model):
 
     def get_absolute_url(self):
         return reverse('details', kwargs={'pk': self.pk})
+
+
+class Comment(models.Model):
+    post = models.ForeignKey(DogAdoptionPost, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    content = models.TextField()
+
+    def __str__(self):
+        return self.content

@@ -61,3 +61,16 @@ body {
 .status-in-progress { color: yellow; }
 .status-completed { color: blue; }
 
+.comment {
+  background-color: antiquewhite;
+  border: 1px solid grey;
+  border-radius: 8px;
+  margin-bottom: 10px; /* Add space between comments */
+}
+
+.comment .author {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: block;
+}
+

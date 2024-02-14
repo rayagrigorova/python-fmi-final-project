@@ -4,7 +4,7 @@ from django.forms import ModelForm
 from django.shortcuts import render, redirect
 from django.urls import reverse
 
-from .models import RegistrationCode, DogAdoptionPost, Shelter
+from .models import RegistrationCode, DogAdoptionPost, Shelter, Comment
 
 
 class UserRegistrationForm(forms.ModelForm):
@@ -66,3 +66,9 @@ class SortFilterForm(forms.Form):
         # tuples of only one element like so: [('breed1',)...('breedN',)])
         unique_breeds = DogAdoptionPost.objects.values_list('breed', flat=True).distinct()
         self.fields['breed'].choices = [('', 'All')] + [(breed, breed) for breed in unique_breeds if breed]
+
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ('content',)

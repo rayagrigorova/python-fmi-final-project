@@ -3,6 +3,7 @@
 
 {% block content %}
 <button onclick="history.back();">Back</button>
+
 <div class="dog-details">
     <div class="dog-image">
         {% if dog.image %}
@@ -22,5 +23,20 @@
         <a href="{% url 'shelter_details' dog.shelter.pk %}">Visit Shelter Page</a>
     </div>
 </div>
+
+    <div>
+        {% for comment in comments %}
+            <div class="comment">
+                <span class="author">{{ comment.author }}</span>
+                <p class="content">{{ comment.content }}</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <form action="{% url 'add_comment_to_post' dog.pk %}" method="post">
+        {% csrf_token %}
+        {{ comment_form.as_p }}
+        <button type="submit">Add Comment</button>
+    </form>
 {% endblock %}
 
