@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from .forms import UserRegistrationForm
-from .models import CustomUser, RegistrationCode, DogAdoptionPost, Shelter, Comment, PostSubscription
+from .models import CustomUser, RegistrationCode, DogAdoptionPost, Shelter, Comment, PostSubscription, Notification
 from django.contrib.auth import get_user_model
 
 
@@ -684,6 +684,12 @@ class SubscriptionTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertFalse(PostSubscription.objects.filter(user=self.shelter_user, post=self.dog_post).exists())
 
+    def test_post_creator_cannot_unsubscribe(self):
+        self.client.login(username='shelter_user', password='123456')
+        response = self.client.post(reverse('unsubscribe', args=[self.dog_post.id]))
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(PostSubscription.objects.filter(user=self.shelter_user, post=self.dog_post).exists())
+
     def test_subscription_options_change(self):
         """Test if the 'Subscribe' option appears or disappears when the status of the post changes"""
         self.client.login(username='user', password='123456')
@@ -733,3 +739,59 @@ class SubscriptionTests(TestCase):
         self.client.login(username='user', password='123456')
         response = self.client.get(reverse('index'))
         self.assertContains(response, 'Unsubscribe')
+
+
+class NotificationTests(TestCase):
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username='user', password='123456')
+        self.notification = Notification.objects.create(recipient=self.user, message='test test', is_read=False)
+
+        self.shelter_user = get_user_model().objects.create_user(username='shelter_user', password='123456', role='shelter')
+        self.shelter = Shelter.objects.get(user=self.shelter_user)
+        self.dog_post = DogAdoptionPost.objects.create(name='kucho', age=1, gender='male', breed='chihlala',
+                                                       shelter=self.shelter, description='pluh', size='XL',
+                                                       adoption_stage='in_process')
+
+    def test_notification_list(self):
+        self.client.login(username='user', password='123456')
+        response = self.client.get(reverse('notifications'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'test test')
+
+    def test_mark_notifications_read(self):
+        """Test if notifications are marked as 'read' after the user exists the 'notifications' page"""
+        self.client.login(username='user', password='123456')
+        self.client.get(reverse('notifications'))
+        self.client.get(reverse('index'))
+        self.notification.refresh_from_db()
+        self.assertTrue(self.notification.is_read)
+
+    def test_receive_notification(self):
+        """Test if the user receives a notification once the status of a post changes to 'active'"""
+        self.dog_post.adoption_stage = 'active'
+        self.dog_post.save()
+        self.client.login(username='user', password='123456')
+        response = self.client.get(reverse('notifications'))
+        self.assertContains(response, f"{self.dog_post.name} is now available for adoption.")
+
+    def test_no_notification_completed(self):
+        """Check if the user doesn't receive a notification after a dog adoption post is marked as 'completed'"""
+        self.dog_post.adoption_stage = 'completed'
+        self.dog_post.save()
+        # The only notification in the user's 'notifications' page should be 'test test' (from setUp())
+        self.assertEqual(Notification.objects.count(), 1)
+
+    def test_new_notification_is_unread_after_marking_previous_as_read(self):
+        self.client.login(username='user', password='123456')
+        self.client.get(reverse('notifications'))
+        self.client.get(reverse('index'))
+        self.notification.refresh_from_db()
+        self.assertTrue(self.notification.is_read)
+
+        new_notification = Notification.objects.create(recipient=self.user, message='nowo', is_read=False)
+
+        self.client.get(reverse('notifications'))
+        new_notification.refresh_from_db()
+        self.assertFalse(new_notification.is_read)
+        self.assertTrue(self.notification.is_read)
