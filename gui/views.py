@@ -237,6 +237,9 @@ def delete_comment(request, post_pk, comment_pk):
 @login_required(login_url='/register-login')
 def subscribe_to_post(request, post_id):
     post = get_object_or_404(DogAdoptionPost, id=post_id)
+    if request.user == post.shelter.user:
+        return redirect('index')
+
     try:
         PostSubscription.objects.get(user=request.user)
     except PostSubscription.DoesNotExist:
@@ -247,6 +250,9 @@ def subscribe_to_post(request, post_id):
 @login_required(login_url='/register-login')
 def unsubscribe_from_post(request, post_id):
     post = get_object_or_404(DogAdoptionPost, id=post_id)
+    if request.user == post.shelter.user:
+        return redirect('index')
+
     subscription_to_remove = PostSubscription.objects.filter(user=request.user, post=post)
     subscription_to_remove.delete()
     return redirect('index')
