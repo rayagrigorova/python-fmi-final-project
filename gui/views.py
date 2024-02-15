@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
+from django.http import HttpResponse
 from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.generic import DetailView, UpdateView
@@ -255,3 +256,10 @@ def unsubscribe_from_post(request, post_id):
 def user_notifications(request):
     notifications = request.user.notifications.all()
     return render(request, 'notifications.html', {'notifications': notifications})
+
+
+@login_required(login_url='/register-login')
+def mark_notifications_read(request):
+    """Mark all messages as 'read' after the user leaves the notifications page"""
+    request.user.notifications.update(is_read=True)
+    return HttpResponse('OK', status=200)

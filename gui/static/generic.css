@@ -104,5 +104,14 @@ body {
   display: block;
 }
 
+.notification {
+    padding: 10px;
+    margin-bottom: 5px;
+    border: 1px solid #ccc;
+}
 
+.unread {
+    font-weight: bold;
+    background-color: #f0f0f0;
+}
 

@@ -64,7 +64,7 @@
                 <a href="{% url 'delete_post' dog.pk %}">Delete Post</a>
             {% endif %}
 
-            {% if dog.adoption_stage == 'in_process'%}
+            {% if dog.adoption_stage == 'in_process' and not dog.shelter.user == request.user%}
                 {% if dog.user_is_subscribed %}
                     <form action="{% url 'unsubscribe' dog.id %}" method="post">
                         {% csrf_token %}
