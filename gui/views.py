@@ -7,7 +7,7 @@ from django.views.generic import DetailView, UpdateView
 
 from .forms import UserRegistrationForm, DogAdoptionPostForm, ShelterForm, SortFilterForm, CommentForm
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import RegistrationCode, Shelter, DogAdoptionPost, Comment, PostSubscription
+from .models import RegistrationCode, Shelter, DogAdoptionPost, Comment, PostSubscription, Notification
 
 import folium
 from django.contrib import messages
@@ -15,8 +15,11 @@ from django.contrib import messages
 
 @login_required(login_url='/register-login')
 def index(request):
-    dogs = DogAdoptionPost.objects.filter(adoption_stage__in=['active', 'in_process'])
     shelters = Shelter.objects.all()
+    dogs = DogAdoptionPost.objects.filter(adoption_stage__in=['active', 'in_process'])
+
+    for dog in dogs:
+        dog.user_is_subscribed = PostSubscription.objects.filter(user=request.user, post=dog).exists()
 
     form = SortFilterForm(request.GET)
 
@@ -236,8 +239,8 @@ def subscribe_to_post(request, post_id):
     try:
         PostSubscription.objects.get(user=request.user)
     except PostSubscription.DoesNotExist:
-        PostSubscription.objects.create(user=request, post=post)
-    return redirect('index', pk=post_id)
+        PostSubscription.objects.create(user=request.user, post=post)
+    return redirect('index')
 
 
 @login_required(login_url='/register-login')
@@ -245,4 +248,10 @@ def unsubscribe_from_post(request, post_id):
     post = get_object_or_404(DogAdoptionPost, id=post_id)
     subscription_to_remove = PostSubscription.objects.filter(user=request.user, post=post)
     subscription_to_remove.delete()
-    return redirect('index', pk=post_id)
+    return redirect('index')
+
+
+@login_required(login_url='/register-login')
+def user_notifications(request):
+    notifications = request.user.notifications.all()
+    return render(request, 'notifications.html', {'notifications': notifications})

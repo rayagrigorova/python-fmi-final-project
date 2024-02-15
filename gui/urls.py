@@ -19,5 +19,8 @@ urlpatterns = [
     path('archive/', archive_page, name='archive_page'),
     path('dogs/<int:pk>/comment/', create_comment, name='add_comment_to_post'),
     path('dogs/<int:post_pk>/comments/<int:comment_pk>/edit/', views.edit_comment, name='edit_comment'),
-    path('dogs/<int:post_pk>/comments/<int:comment_pk>/delete/', views.delete_comment, name='delete_comment')
+    path('dogs/<int:post_pk>/comments/<int:comment_pk>/delete/', views.delete_comment, name='delete_comment'),
+    path('notifications/', views.user_notifications, name='notifications'),
+    path('subscribe/<int:post_id>/', views.subscribe_to_post, name='subscribe'),
+    path('unsubscribe/<int:post_id>/', views.unsubscribe_from_post, name='unsubscribe'),
 ]

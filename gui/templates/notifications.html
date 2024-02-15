@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Notifications</h1>
+<button onclick="window.location='{% url 'index' %}';">Back</button>
+
+<div class="notifications">
+    {% if notifications %}
+        <ul>
+            {% for notification in notifications %}
+                <li>{{ notification.message }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You have no notifications.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

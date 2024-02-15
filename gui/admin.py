@@ -1,7 +1,8 @@
 from django.contrib import admin
-from .models import CustomUser, Comment
+from .models import CustomUser, Comment, PostSubscription
 from .models import RegistrationCode
 from .models import Shelter
+from .models import DogAdoptionPost
 from .models import DogAdoptionPost
 
 
@@ -45,8 +46,23 @@ class CommentAdmin(admin.ModelAdmin):
     display_post.short_description = 'Post'
 
 
+class PostSubscriptionAdmin(admin.ModelAdmin):
+    list_display = ('display_user', 'display_post', 'is_active',)
+
+    def display_user(self, obj):
+        return obj.user.username
+
+    display_user.short_description = 'User'
+
+    def display_post(self, obj):
+        return obj.post.name
+
+    display_post.short_description = 'Post'
+
+
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(RegistrationCode, RegistrationCodeAdmin)
 admin.site.register(Shelter, ShelterAdmin)
 admin.site.register(DogAdoptionPost, DogAdoptionPostAdmin)
 admin.site.register(Comment, CommentAdmin)
+admin.site.register(PostSubscription, PostSubscriptionAdmin)
