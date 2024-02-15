@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from .forms import UserRegistrationForm
-from .models import CustomUser, RegistrationCode, DogAdoptionPost, Shelter, Comment
+from .models import CustomUser, RegistrationCode, DogAdoptionPost, Shelter, Comment, PostSubscription
 from django.contrib.auth import get_user_model
 
 
@@ -652,3 +652,84 @@ class CommentCRUDTests(TestCase):
         self.client.login(username='user2', password='123456')
         self.client.post(reverse('delete_comment', args=[self.dog_post.pk, comment.pk]))
         self.assertTrue(Comment.objects.filter(pk=comment.pk).exists())
+
+
+class SubscriptionTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username='user', password='123456')
+        self.shelter_user = get_user_model().objects.create_user(username='shelter_user', password='123456', role='shelter')
+        self.shelter = Shelter.objects.get(user=self.shelter_user)
+        self.dog_post = DogAdoptionPost.objects.create(name='kucho', age=1, gender='male', breed='chihlala',
+                                                       shelter=self.shelter, description='pluh', size='XL',
+                                                       adoption_stage='in_process')
+
+    def test_subscribe_to_post(self):
+        self.client.login(username='user', password='123456')
+        response = self.client.post(reverse('subscribe', args=[self.dog_post.id]))
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('index'))
+        self.assertTrue(PostSubscription.objects.filter(user=self.user, post=self.dog_post).exists())
+
+    def test_unsubscribe_from_post(self):
+        self.client.login(username='user', password='123456')
+        PostSubscription.objects.create(user=self.user, post=self.dog_post)
+        response = self.client.post(reverse('unsubscribe', args=[self.dog_post.id]))
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('index'))
+        self.assertFalse(PostSubscription.objects.filter(user=self.user, post=self.dog_post).exists())
+
+    def test_post_creator_cannot_subscribe(self):
+        self.client.login(username='shelter_user', password='123456')
+        response = self.client.post(reverse('subscribe', args=[self.dog_post.id]))
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(PostSubscription.objects.filter(user=self.shelter_user, post=self.dog_post).exists())
+
+    def test_subscription_options_change(self):
+        """Test if the 'Subscribe' option appears or disappears when the status of the post changes"""
+        self.client.login(username='user', password='123456')
+        self.dog_post.adoption_stage = 'active'
+        self.dog_post.save()
+
+        response = self.client.get(reverse('index'))
+        # After the status of the post changes from 'In process' to 'Active', users shouldn't be able to subscribe
+        self.assertNotContains(response, 'Subscribe')
+
+        # Change post status back to 'In process'
+        self.dog_post.adoption_stage = 'in_process'
+        self.dog_post.save()
+
+        response = self.client.get(reverse('index'))
+        # The 'Subscribe' option is visible again
+        self.assertContains(response, 'Subscribe')
+
+    def test_user_remains_subscribed_on_status_change(self):
+        """Test if a user remains subscribed to a post even after its status changes to 'active'"""
+        PostSubscription.objects.create(user=self.user, post=self.dog_post)
+        self.dog_post.adoption_stage = 'active'
+        self.dog_post.save()
+        self.assertTrue(PostSubscription.objects.filter(user=self.user, post=self.dog_post).exists())
+
+    def test_subscribe_option_on_double_status_change(self):
+        """Test if the user can subscribe if the status changes from
+        'in process', to active, and then back to 'in process'"""
+        self.dog_post.adoption_stage = 'active'
+        self.dog_post.save()
+        self.dog_post.adoption_stage = 'in_process'
+        self.dog_post.save()
+
+        self.client.login(username='user', password='123456')
+        response = self.client.get(reverse('index'))
+        self.assertContains(response, 'Subscribe')
+
+    def test_unsubscribe_option_after_status_change(self):
+        """Test if the user remains subscribed after a status change and has the option to unsubscribe"""
+        PostSubscription.objects.create(user=self.user, post=self.dog_post)
+
+        self.dog_post.adoption_stage = 'active'
+        self.dog_post.save()
+        self.dog_post.adoption_stage = 'in_process'
+        self.dog_post.save()
+
+        self.client.login(username='user', password='123456')
+        response = self.client.get(reverse('index'))
+        self.assertContains(response, 'Unsubscribe')

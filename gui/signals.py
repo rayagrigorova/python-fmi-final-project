@@ -17,15 +17,21 @@ def create_shelter_for_new_shelter_user(sender, instance, created, **kwargs):
 
 @receiver(pre_save, sender=DogAdoptionPost)  # The function will be called right before a DogAdoptionPost is saved
 def notify_subscribers_on_status_change(sender, instance, **kwargs):
-    previous = DogAdoptionPost.objects.get(pk=instance.pk)
+    # If instance has a primary key it exists in the database (it was already saved in the database)
+    if instance.pk:
+        try:
+            previous = DogAdoptionPost.objects.get(pk=instance.pk)
 
-    if previous.adoption_stage == 'in_process' and instance.adoption_stage == 'active':
-        # Get all subscriptions for the post (pairs of user-post, along with a boolean value to check for activation)
-        all_post_subscriptions = instance.subscribers.all()
-        post_url = reverse('dog_details', kwargs={'pk': instance.pk})
+            if previous.adoption_stage == 'in_process' and instance.adoption_stage == 'active':
+                # Get all subscriptions for the post (pairs of user-post, along with a boolean value to check for activation)
+                all_post_subscriptions = instance.subscribers.all()
+                post_url = reverse('dog_details', kwargs={'pk': instance.pk})
 
-        for subscription in all_post_subscriptions:
-            Notification.objects.create(
-                recipient=subscription.user,
-                message=f'{instance.name} is available for adoption. View details here: {post_url}'
-            )
+                for subscription in all_post_subscriptions:
+                    Notification.objects.create(
+                        recipient=subscription.user,
+                        message=f'{instance.name} is available for adoption. View details here: {post_url}'
+                    )
+        except DogAdoptionPost.DoesNotExist:
+            pass
+
