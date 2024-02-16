@@ -445,8 +445,33 @@ class FilterAndSortTest(TestCase):
         cls.shelter2 = Shelter.objects.get(user=cls.user2)
 
         DogAdoptionPost.objects.create(name="Sharko", age=9, gender="male", breed="nz", size="M", shelter=cls.shelter2)
-        DogAdoptionPost.objects.create(name="Kucho", age=12, gender="male", breed="ima", size="L", shelter=cls.shelter1)
+        DogAdoptionPost.objects.create(name="Kucho", age=12, gender="female", breed="ima", size="L",
+                                       shelter=cls.shelter1)
         DogAdoptionPost.objects.create(name="ЦЕЗАР", age=5, gender="male", breed="nz", size="XL", shelter=cls.shelter1)
+
+        cls.ordinary_user = get_user_model().objects.create_user(username='ordinary', password='12345')
+
+    def test_filter_by_breed(self):
+        self.client.login(username='ordinary', password='12345')
+        response = self.client.get(reverse('index'), {'breed': 'nz'})
+        self.assertContains(response, "Sharko")
+        self.assertContains(response, "ЦЕЗАР")
+        self.assertNotContains(response, "Kucho")
+
+    def test_filter_by_gender(self):
+        self.client.login(username='ordinary', password='12345')
+        DogAdoptionPost.objects.create(name="dsjiofsdfs", age=5, gender="male", breed="nz", size="XL", shelter=self.shelter1)
+        DogAdoptionPost.objects.create(name="1112121212", age=5, gender="male", breed="nz", size="XL", shelter=self.shelter1)
+        DogAdoptionPost.objects.create(name="fgdffgfg23232", age=5, gender="male", breed="nz", size="XL", shelter=self.shelter1)
+
+        response = self.client.get(reverse('index'), {'gender': 'male'})
+
+        self.assertContains(response, "Sharko")
+        self.assertContains(response, "ЦЕЗАР")
+        self.assertContains(response, "dsjiofsdfs")
+        self.assertContains(response, "1112121212")
+        self.assertContains(response, "fgdffgfg23232")
+        self.assertNotContains(response, "Kucho")
 
     def test_filter_by_shelter(self):
         self.client.login(username='user1', password='12345')
@@ -657,7 +682,8 @@ class CommentCRUDTests(TestCase):
 class SubscriptionTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(username='user', password='123456')
-        self.shelter_user = get_user_model().objects.create_user(username='shelter_user', password='123456', role='shelter')
+        self.shelter_user = get_user_model().objects.create_user(username='shelter_user', password='123456',
+                                                                 role='shelter')
         self.shelter = Shelter.objects.get(user=self.shelter_user)
         self.dog_post = DogAdoptionPost.objects.create(name='kucho', age=1, gender='male', breed='chihlala',
                                                        shelter=self.shelter, description='pluh', size='XL',
@@ -766,7 +792,8 @@ class NotificationTests(TestCase):
         self.user = get_user_model().objects.create_user(username='user', password='123456')
         self.notification = Notification.objects.create(recipient=self.user, message='test test', is_read=False)
 
-        self.shelter_user = get_user_model().objects.create_user(username='shelter_user', password='123456', role='shelter')
+        self.shelter_user = get_user_model().objects.create_user(username='shelter_user', password='123456',
+                                                                 role='shelter')
         self.shelter = Shelter.objects.get(user=self.shelter_user)
         self.dog_post = DogAdoptionPost.objects.create(name='kucho', age=1, gender='male', breed='chihlala',
                                                        shelter=self.shelter, description='pluh', size='XL',
@@ -832,5 +859,4 @@ class NotificationTests(TestCase):
         """Test if a notification is automatically deleted after a post is deleted"""
         post_id = self.dog_post.id
         self.dog_post.delete()
-        self.assertFalse(Notification.objects.filter(related_post_id=post_id).exists(),)
-
+        self.assertFalse(Notification.objects.filter(related_post_id=post_id).exists(), )
