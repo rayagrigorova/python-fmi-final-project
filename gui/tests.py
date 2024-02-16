@@ -763,17 +763,18 @@ class NotificationTests(TestCase):
         """Test if notifications are marked as 'read' after the user exists the 'notifications' page"""
         self.client.login(username='user', password='123456')
         self.client.get(reverse('notifications'))
-        self.client.get(reverse('index'))
+        self.client.get(reverse('mark_notifications_read'))
         self.notification.refresh_from_db()
         self.assertTrue(self.notification.is_read)
 
     def test_receive_notification(self):
         """Test if the user receives a notification once the status of a post changes to 'active'"""
+        PostSubscription.objects.create(user=self.user, post=self.dog_post)
         self.dog_post.adoption_stage = 'active'
         self.dog_post.save()
         self.client.login(username='user', password='123456')
         response = self.client.get(reverse('notifications'))
-        self.assertContains(response, f"{self.dog_post.name} is now available for adoption.")
+        self.assertContains(response, f"{self.dog_post.name} is available for adoption.")
 
     def test_no_notification_completed(self):
         """Check if the user doesn't receive a notification after a dog adoption post is marked as 'completed'"""
@@ -785,7 +786,7 @@ class NotificationTests(TestCase):
     def test_new_notification_is_unread_after_marking_previous_as_read(self):
         self.client.login(username='user', password='123456')
         self.client.get(reverse('notifications'))
-        self.client.get(reverse('index'))
+        self.client.get(reverse('mark_notifications_read'))
         self.notification.refresh_from_db()
         self.assertTrue(self.notification.is_read)
 

@@ -267,5 +267,5 @@ def user_notifications(request):
 @login_required(login_url='/register-login')
 def mark_notifications_read(request):
     """Mark all messages as 'read' after the user leaves the notifications page"""
-    request.user.notifications.update(is_read=True)
+    request.user.notifications.filter(is_read=False).update(is_read=True)
     return HttpResponse('OK', status=200)

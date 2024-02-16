@@ -5,6 +5,7 @@ from django.urls import reverse
 from .models import CustomUser, Shelter, DogAdoptionPost, Notification
 from django.db.models.signals import pre_save
 
+
 # 'post_save' is a signal Django sends after a model's 'save' method is called
 # The @receiver decorator registers the function as a signal handler.
 @receiver(post_save, sender=CustomUser)
@@ -23,15 +24,15 @@ def notify_subscribers_on_status_change(sender, instance, **kwargs):
             previous = DogAdoptionPost.objects.get(pk=instance.pk)
 
             if previous.adoption_stage == 'in_process' and instance.adoption_stage == 'active':
-                # Get all subscriptions for the post (pairs of user-post, along with a boolean value to check for activation)
+                # Get all subscriptions for the post (pairs of user-post,
+                # along with a boolean value to check for activation)
                 all_post_subscriptions = instance.subscribers.all()
                 post_url = reverse('dog_details', kwargs={'pk': instance.pk})
 
                 for subscription in all_post_subscriptions:
                     Notification.objects.create(
                         recipient=subscription.user,
-                        message=f'{instance.name} is available for adoption. View details here: {post_url}'
+                        message=f'{instance.name} is available for adoption.'
                     )
         except DogAdoptionPost.DoesNotExist:
             pass
-
