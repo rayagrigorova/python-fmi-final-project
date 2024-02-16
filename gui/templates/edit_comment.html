@@ -1,10 +1,11 @@
 {% extends "base.html" %}
+
 {% block content %}
-<button onclick="history.back();">Back</button>
-<h2>Edit Comment</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Save</button>
-</form>
+    <button onclick="history.back();">Back</button>
+    <h2>Edit Comment</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save</button>
+    </form>
 {% endblock %}

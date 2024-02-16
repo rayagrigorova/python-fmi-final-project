@@ -1,27 +1,26 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Notifications</h1>
-<button onclick="window.location='{% url 'index' %}';">Back</button>
+    <h1>Notifications</h1>
+    <button onclick="window.location='{% url 'index' %}';">Back</button>
 
+    {% if notifications %}
+        <ul>
+            {% for notification in notifications %}
+                <li class="notification {% if not notification.is_read %}unread{% endif %}">
+                    {{ notification.message }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You have no notifications.</p>
+    {% endif %}
 
-{% if notifications %}
-    <ul>
-        {% for notification in notifications %}
-            <li class="notification {% if not notification.is_read %}unread{% endif %}">
-                {{ notification.message }}
-            </li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>You have no notifications.</p>
-{% endif %}
-
-{# Detect when the user is leaving the page and mark all notifications as 'read' #}
-<script>
-    window.addEventListener('beforeunload', function(event) {
-    navigator.sendBeacon('/mark-notifications-read/');
-    });
-</script>
+    {# Detect when the user is leaving the page and mark all notifications as 'read' #}
+    <script>
+        window.addEventListener('beforeunload', function(event) {
+        navigator.sendBeacon('/mark-notifications-read/');
+        });
+    </script>
 
 {% endblock %}

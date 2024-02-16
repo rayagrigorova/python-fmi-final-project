@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container">
-    <h2>Edit Shelter Profile</h2>
-    <button onclick="window.location='{% url 'index' %}';">Back</button>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Save</button>
-    </form>
-</div>
+    <div class="container">
+        <h2>Edit Shelter Profile</h2>
+        <button onclick="window.location='{% url 'index' %}';">Back</button>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Save</button>
+        </form>
+    </div>
 {% endblock %}
