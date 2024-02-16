@@ -3,7 +3,6 @@ from .models import CustomUser, Comment, PostSubscription
 from .models import RegistrationCode
 from .models import Shelter
 from .models import DogAdoptionPost
-from .models import DogAdoptionPost
 
 
 class CustomUserAdmin(admin.ModelAdmin):

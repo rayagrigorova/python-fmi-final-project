@@ -1,13 +1,11 @@
 from django.contrib.auth import get_user_model
 from django import forms
-from django.forms import ModelForm
-from django.shortcuts import render, redirect
-from django.urls import reverse
-
 from .models import RegistrationCode, DogAdoptionPost, Shelter, Comment
 
 
 class UserRegistrationForm(forms.ModelForm):
+    # widget=forms.PasswordInput() specifies the widget to use for rendering the field in HTML
+    # PasswordInput() is used, which renders the characters in the field as '****'
     password = forms.CharField(widget=forms.PasswordInput())
 
     class Meta:
@@ -47,6 +45,8 @@ class ShelterForm(forms.ModelForm):
     class Meta:
         model = Shelter
         fields = ['name', 'working_hours', 'phone', 'address', 'latitude', 'longitude']
+        #  The 'widgets' attribute in the Meta class allows customization of
+        #  how each form field is rendered in the form (in this case, I have set the precision to 7 decimal places)
         widgets = {
             'latitude': forms.NumberInput(attrs={'step': '0.0000001'}),
             'longitude': forms.NumberInput(attrs={'step': '0.0000001'}),
