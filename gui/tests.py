@@ -740,6 +740,25 @@ class SubscriptionTests(TestCase):
         response = self.client.get(reverse('index'))
         self.assertContains(response, 'Unsubscribe')
 
+    def test_unsubscribe_does_not_affect_other_users(self):
+        """Test if unsubscribing a user affects other users"""
+        new_user = get_user_model().objects.create_user(username='new_user', password='123456')
+        PostSubscription.objects.create(user=self.user, post=self.dog_post)
+        PostSubscription.objects.create(user=new_user, post=self.dog_post)
+
+        self.client.login(username='new_user', password='123456')
+        self.client.post(reverse('unsubscribe', args=[self.dog_post.id]))
+
+        self.assertTrue(PostSubscription.objects.filter(user=self.user, post=self.dog_post).exists())
+        self.assertFalse(PostSubscription.objects.filter(user=new_user, post=self.dog_post).exists())
+
+    def test_subscription_deleted_with_post(self):
+        """Test if a subscription is automatically deleted after a post is deleted"""
+        post_id = self.dog_post.id
+        PostSubscription.objects.create(user=self.user, post=self.dog_post)
+        self.dog_post.delete()
+        self.assertFalse(PostSubscription.objects.filter(user=self.user, post_id=post_id).exists())
+
 
 class NotificationTests(TestCase):
 
@@ -796,3 +815,22 @@ class NotificationTests(TestCase):
         new_notification.refresh_from_db()
         self.assertFalse(new_notification.is_read)
         self.assertTrue(self.notification.is_read)
+
+    def test_multiple_subscribers_notification(self):
+        user2 = get_user_model().objects.create_user(username='user2', password='123456')
+        user3 = get_user_model().objects.create_user(username='user3', password='123456')
+        PostSubscription.objects.create(user=self.user, post=self.dog_post)
+        PostSubscription.objects.create(user=user2, post=self.dog_post)
+        PostSubscription.objects.create(user=user3, post=self.dog_post)
+
+        self.dog_post.adoption_stage = 'active'
+        self.dog_post.save()
+
+        self.assertEqual(Notification.objects.filter(message__contains=self.dog_post.name).count(), 3)
+
+    def test_notification_deleted_with_post(self):
+        """Test if a notification is automatically deleted after a post is deleted"""
+        post_id = self.dog_post.id
+        self.dog_post.delete()
+        self.assertFalse(Notification.objects.filter(related_post_id=post_id).exists(),)
+
