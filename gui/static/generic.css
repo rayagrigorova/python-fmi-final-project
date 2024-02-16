@@ -21,6 +21,9 @@ body {
     background-color: #EFEFEF;
     border: 1px solid black;
     box-shadow: 0px 0px 5px 0px black;
+
+    /*Prevent the content of the element from overflowing its box.*/
+    /*If the content is larger it will be clipped and the excess content will not be visible.*/
     overflow: hidden;
 }
 
@@ -33,9 +36,15 @@ body {
 }
 
 .dog-container {
+    /*Use the CSS Grid Layout*/
     display: grid;
+
+    /*This defines the column structure of the grid layout
+    'auto-fill' fills the row with as many columns as it can fit. minmax(250px, 1fr)
+    ensures that each column has a min width 250px and max width
+    that distributes the remaining space equally (1fr = one fraction of available space).*/
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
+    gap: 20px; /* The gap between grid items */
     width: 90%;
     margin: 0 auto;
 }
@@ -45,13 +54,14 @@ body {
   border: 1px solid #ccc;
   border-radius: 10px;
   padding: 10px;
+    /* The shadow is 0 pixels to the right and 2 pixels down, has a blur radius 5 pixels and has 10% opacity */
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   align-items: center;
 }
 
 .dog-details {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /*Allow items in a flex container to wrap onto multiple lines*/
     margin-bottom: 20px;
 }
 
@@ -71,16 +81,19 @@ body {
 }
 
 .left-side {
+    /*The item can grow to fill available space if necessary*/
     flex: 1;
     margin-right: 20px;
 }
 
 .right-side {
+     /*The item can take up twice as much space as items with flex: 1;*/
     flex: 2;
 }
 
-
 .comments-section {
+    /*This ensures that the comment section does not start adjacent */
+    /*to any floating elements above it (the dog details and description)*/
     clear: both;
 }
 
@@ -93,7 +106,7 @@ body {
   max-width: 80%;
   background-color: antiquewhite;
   border: 1px solid saddlebrown;
-  border-radius: 8px;
+  border-radius: 8px; /*Make the border rounded*/
   padding: 10px;
   margin-bottom: 4px; /* Add space between comments */
 }
