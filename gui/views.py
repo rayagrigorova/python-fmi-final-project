@@ -52,6 +52,7 @@ def register_and_login(request):
     login_form = AuthenticationForm()
 
     if request.method == 'POST':
+        # Get the action parameter (if the key doesn't exist, return '')
         action = request.POST.get('action', '')
         if action == 'register':
             # Create UserRegistrationForm instance with POST data from the request.
@@ -102,6 +103,7 @@ class DogDetailView(DetailView):
     template_name = 'dog_details.html'
     context_object_name = 'dog'
 
+    # get_context_data is used to pass additional data to the template
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['comments'] = Comment.objects.filter(post=self.object)
@@ -115,7 +117,6 @@ class ShelterDetailView(DetailView):
     template_name = 'shelter_details.html'
     context_object_name = 'shelter'
 
-    # get_context_data is used to pass additional data to the template
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         shelter = self.get_object()
@@ -164,10 +165,10 @@ def edit_shelter(request, pk):
 
 
 class EditDogPostView(UpdateView):
-    model = DogAdoptionPost  # specify the model to be updated
+    model = DogAdoptionPost  # Specify the model to be updated
     form_class = DogAdoptionPostForm
     template_name = 'edit_dog_post.html'
-    # specify the URL to redirect; reverse_lazy() is used so that
+    # Specify the URL to redirect; reverse_lazy() is used so that
     # the URL is not loaded before the app is ready
     success_url = reverse_lazy('index')
 

@@ -830,9 +830,10 @@ class NotificationTests(TestCase):
         self.assertEqual(Notification.objects.count(), 1)
 
     def test_new_notification_is_unread_after_marking_previous_as_read(self):
+        """Test if after receiving a new message the old ones remain read and the new one is unread"""
         self.client.login(username='user', password='123456')
         self.client.get(reverse('notifications'))
-        self.client.get(reverse('mark_notifications_read'))
+        self.client.get(reverse('mark_notifications_read')) # Simulate opening and closing the page
         self.notification.refresh_from_db()
         self.assertTrue(self.notification.is_read)
 
@@ -844,6 +845,7 @@ class NotificationTests(TestCase):
         self.assertTrue(self.notification.is_read)
 
     def test_multiple_subscribers_notification(self):
+        """Test if multiple subscribers subscribed to the same post get a notification when status changes"""
         user2 = get_user_model().objects.create_user(username='user2', password='123456')
         user3 = get_user_model().objects.create_user(username='user3', password='123456')
         PostSubscription.objects.create(user=self.user, post=self.dog_post)

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CustomUser, Comment, PostSubscription
+from .models import CustomUser, Comment, PostSubscription, Notification
 from .models import RegistrationCode
 from .models import Shelter
 from .models import DogAdoptionPost
@@ -59,9 +59,15 @@ class PostSubscriptionAdmin(admin.ModelAdmin):
     display_post.short_description = 'Post'
 
 
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('recipient', 'message', 'is_read', 'related_post')
+    list_filter = ('is_read', 'recipient')
+
+
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(RegistrationCode, RegistrationCodeAdmin)
 admin.site.register(Shelter, ShelterAdmin)
 admin.site.register(DogAdoptionPost, DogAdoptionPostAdmin)
 admin.site.register(Comment, CommentAdmin)
 admin.site.register(PostSubscription, PostSubscriptionAdmin)
+admin.site.register(Notification, NotificationAdmin)
